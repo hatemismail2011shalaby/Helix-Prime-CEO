@@ -7,4 +7,3 @@ engine.exe
 venv/
 *.log
 .DS_Store
-.vscode/
