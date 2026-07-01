@@ -1,0 +1,32 @@
+{
+  "sami": {
+    "script": "agents/sami.py",
+    "capabilities": ["general_reasoning", "conversation"],
+    "status": "active",
+    "max_concurrent": 1
+  },
+  "wili": {
+    "script": "agents/wili.py",
+    "capabilities": ["general_reasoning", "conversation"],
+    "status": "maintenance",
+    "max_concurrent": 1
+  },
+  "gimi": {
+    "script": "agents/gimi.py",
+    "capabilities": ["general_reasoning", "conversation"],
+    "status": "maintenance",
+    "max_concurrent": 1
+  },
+  "phili": {
+    "script": "agents/phili.py",
+    "capabilities": ["general_reasoning", "conversation"],
+    "status": "maintenance",
+    "max_concurrent": 1
+  },
+  "suby": {
+    "script": "agents/suby.py",
+    "capabilities": ["general_reasoning", "conversation"],
+    "status": "maintenance",
+    "max_concurrent": 1
+  }
+}
