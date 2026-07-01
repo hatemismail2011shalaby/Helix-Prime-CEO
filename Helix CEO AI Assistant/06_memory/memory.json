@@ -1,0 +1,30 @@
+{
+  "sessions": [
+    {
+      "timestamp": "2026-06-30T15:21:37.818066",
+      "agent": "sami",
+      "prompt": "say hello",
+      "response": "Hello! \u064b\u06ba\u06a9\u0679 How can I assist you today? I'm here to help with any questions or tasks you might have!\n"
+    },
+    {
+      "timestamp": "2026-06-30T15:23:37.239385",
+      "agent": "sami",
+      "prompt": "say hello",
+      "response": "Hello! I've considered your request and am ready to assist you. How can I help today? \u064b\u06ba\u06a9\u0679\n"
+    },
+    {
+      "timestamp": "2026-06-30T16:06:15.582367",
+      "agent": "sami",
+      "prompt": "say hello",
+      "response": "Hello! How can I assist you today? \u064b\u06ba\u06a9\u0679\n"
+    },
+    {
+      "timestamp": "2026-07-01T14:16:43.181211",
+      "agent": "sami",
+      "prompt": "hello",
+      "response": "Hello! \u064b\u06ba\u06a9\u0679 How can I assist you today? I'm here to help with any questions or tasks you might have!\n"
+    }
+  ],
+  "total_interactions": 4,
+  "last_active": "2026-07-01T14:16:43.199818"
+}
