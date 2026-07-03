@@ -3,6 +3,8 @@
     "ms-azuretools.vscode-azurefunctions",
     "sourcery.sourcery",
     "azurite.azurite",
-    "ms-azuretools.vscode-azurestorage"
+    "ms-azuretools.vscode-azurestorage",
+    "localcodeai.coding-agent-local-ai",
+    "continue.continue"
   ]
 }
