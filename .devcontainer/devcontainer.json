@@ -1,0 +1,177 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+	"name": "Alpine",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/base:alpine-3.22",
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"installBicep": true,
+			"installUsingPython": true,
+			"version": "latest",
+			"bicepVersion": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:4": {
+			"moby": true,
+			"azureDnsAutoDetection": true,
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": true,
+			"iptablesSwitchAtRuntime": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": true,
+			"installDockerBuildx": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "latest"
+		},
+		"ghcr.io/dhoeric/features/act:1": {},
+		"ghcr.io/dhoeric/features/aztfy:1": {},
+		"ghcr.io/rchaganti/vsc-devcontainer-features/azurebicep:1": {},
+		"ghcr.io/customink/codespaces-features/docker-in-docker-amzn:1": {},
+		"ghcr.io/stu-bell/devcontainer-features/open-code:0": {},
+		"ghcr.io/stuartleeks/dev-container-features/add-host:1": {},
+		"ghcr.io/stuartleeks/dev-container-features/azd-cli-persistence:0": {},
+		"ghcr.io/stuartleeks/dev-container-features/azure-cli-persistence:0": {},
+		"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {
+			"version": "latest"
+		},
+		"ghcr.io/jsburckhardt/devcontainer-features/actionlint:1": {},
+		"ghcr.io/jsburckhardt/devcontainer-features/ccc:1": {},
+		"ghcr.io/wxw-matt/devcontainer-features/command_runner:0": {},
+		"ghcr.io/wxw-matt/devcontainer-features/script_runner:0": {},
+		"ghcr.io/joedmck/devcontainer-features/cdktf:1": {},
+		"ghcr.io/azure/azure-dev/azd:0": {
+			"version": "stable"
+		},
+		"ghcr.io/azure/azure-dev/azd-persistence:0": {},
+		"ghcr.io/robbert229/devcontainer-features/operator-sdk:1": {
+			"version": "v1.33.0"
+		},
+		"ghcr.io/cirolosapio/devcontainers-features/alpine-deno:0": {},
+		"ghcr.io/audacioustux/devcontainers/operator-sdk:1": {},
+		"ghcr.io/paul-gilber/devcontainer-features/buildah-apt-get:1": {},
+		"ghcr.io/prulloac/devcontainer-features/ollama:1": {},
+		"ghcr.io/kreemer/features/chrometesting:1": {
+			"version": "Stable"
+		},
+		"ghcr.io/bartventer/arch-devcontainer-features/azure-cli:1": {},
+		"ghcr.io/bartventer/arch-devcontainer-features/docker-in-docker:1": {
+			"azureDnsAutoDetection": true,
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "none"
+		},
+		"ghcr.io/bartventer/arch-devcontainer-features/docker-outside-of-docker:1": {
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/code-fabrik/features/dokku-cli:1": {},
+		"ghcr.io/devcontainers-extra/features/act:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/act-asdf:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/actionlint:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/auditjs:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/azure-apiops:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/budibase-cli:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/checkov:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/doctoolchain-sdkman:2": {
+			"version": "latest",
+			"jdkVersion": "latest",
+			"jdkDistro": "ms"
+		},
+		"ghcr.io/devcontainer-community/devcontainer-features/add-script:1": {},
+		"ghcr.io/devcontainer-community/devcontainer-features/charmbracelet-gum:1": {
+			"version": "latest"
+		},
+		"ghcr.io/thediveo/devcontainer-features/docsify:1": {
+			"port": "3300",
+			"docs-path": "docs",
+			"reload-delay": "2000",
+			"reload-debounce": "5000"
+		},
+		"ghcr.io/jajera/features/agentcore-cli:1": {
+			"packageVersion": ""
+		},
+		"ghcr.io/bullmastiffo/devcontainers-features/azurelinux-docker-outside-of-docker:1": {
+			"installDockerBuildx": true,
+			"installDockerCompose": true
+		},
+		"ghcr.io/helpers4/devcontainer/auto-header:1": {
+			"headerType": "simple"
+		},
+		"ghcr.io/helpers4/devcontainer/package-auto-install:1": {
+			"skipIfNodeModulesExists": true,
+			"autoDiscover": true,
+			"command": "auto",
+			"packageManager": "auto"
+		},
+		"ghcr.io/rails/devcontainer/features/activestorage:1": {
+			"variantProcessor": "vips"
+		},
+		"ghcr.io/devcontainer-config/features/dot-config:4": {},
+		"ghcr.io/wcgomes/devcontainer-features/agency-agents:0": {
+			"autoupdate": true
+		},
+		"ghcr.io/wcgomes/devcontainer-features/agents-workspace:0": {
+			"includeAgency": true,
+			"autoupdate": true
+		},
+		"ghcr.io/postfinance/devcontainer-features/build-essential:1": {
+			"version": "latest"
+		},
+		"ghcr.io/postfinance/devcontainer-features/docker-out:1": {
+			"version": "latest",
+			"composeVersion": "latest",
+			"buildxVersion": "latest",
+			"configPath": "/home/user/.docker/config.json"
+		},
+		"ghcr.io/nkaaf/devcontainer-features/package-manager:2": {
+			"deleteCache": true,
+			"upgradePackages": true
+		},
+		"ghcr.io/srzstephen/devcontainer-features/act:1": {
+			"version": "latest"
+		},
+		"ghcr.io/jrussellsmyth/devcontainer-features/openspec:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"Azurite.azurite"
+			]
+		}
+	}
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "uname -a",
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

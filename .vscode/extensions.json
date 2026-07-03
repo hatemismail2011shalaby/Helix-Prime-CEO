@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "sourcery.sourcery"
+        "sourcery.sourcery",
+        "azurite.azurite",
+        "ms-azuretools.vscode-azurestorage"
     ]
 }
