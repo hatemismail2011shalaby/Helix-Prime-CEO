@@ -78,7 +78,7 @@ class Orchestrator:
         if status != "active":
             return (
                 f"Error: agent '{agent_name}' is not active "
-                f"(current status: {status or 'unknown'})."
+                f"(status: {status or 'unknown'})."
             )
 
         script_value = agent_config.get("script")
@@ -92,15 +92,8 @@ class Orchestrator:
         self.memory_manager.set_current_agent(agent_name)
         self.memory_manager.add_conversation_entry(agent_name, prompt)
 
-        payload = json.dumps({"prompt": prompt}, ensure_ascii=False)
-
-        subprocess_env = os.environ.copy()
-        existing_pythonpath = os.environ.get("PYTHONPATH", "")
-        subprocess_env["PYTHONPATH"] = (
-            str(self.command_center_dir) + os.pathsep + existing_pythonpath
-            if existing_pythonpath
-            else str(self.command_center_dir)
-        )
+        payload = json.dumps(self._agent_payload(agent_name, prompt), ensure_ascii=False)
+        subprocess_env = self._subprocess_env()
 
         try:
             completed = subprocess.run(
@@ -129,6 +122,27 @@ class Orchestrator:
         response = completed.stdout.strip()
         self.memory_manager.log_session(agent_name, prompt, response)
         return response
+
+    def _agent_payload(self, agent_name: str, prompt: str) -> Dict[str, Any]:
+        """Adapt the Go prompt contract to each agent script's command contract."""
+        if agent_name == "wili":
+            return {"command": "query", "args": {"question": prompt}}
+        if agent_name == "phili":
+            return {"command": "reflect", "args": {"question": prompt}}
+        if agent_name == "suby":
+            return {"command": "generate", "args": {"spec": prompt}}
+        return {"prompt": prompt}
+
+    def _subprocess_env(self) -> Dict[str, str]:
+        """Build subprocess environment with command center import path available."""
+        subprocess_env = os.environ.copy()
+        existing_pythonpath = subprocess_env.get("PYTHONPATH", "")
+        subprocess_env["PYTHONPATH"] = (
+            str(self.command_center_dir) + os.pathsep + existing_pythonpath
+            if existing_pythonpath
+            else str(self.command_center_dir)
+        )
+        return subprocess_env
 
     def _check_constitution(self) -> None:
         constitution_path = self.project_root / "docs" / "00_CONSTITUTION.md"
