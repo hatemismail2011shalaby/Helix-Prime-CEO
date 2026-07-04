@@ -1,71 +1,46 @@
-from pathlib import Path
-import sys, json, subprocess, datetime
-from dispatcher import select_agent
-from memory_manager import get_memory_manager
+--- orchestrator.py.orig
++++ orchestrator.py
+@@ -1,4 +1,5 @@
+ import json
+ import os
+ from pathlib import Path
 
-def get_registry():
-    base_dir = Path(__file__).resolve().parent.parent
-    registry_path = base_dir / "config" / "agents.json"
-    with open(registry_path, 'r') as f:
-        return json.load(f)
+ SHARED_MEMORY_FILE = Path(__file__).parent / "memory.json"
+ PRIVATE_MEMORY_FILE = Path(__file__).parent / "sami_memory.json"
+ CONVERSATION_FILE = Path(__file__).parent / "conversation.json"
 
-def log_interaction(agent_name, prompt, response):
-    """Log interaction using memory manager"""
-    try:
-        memory_mgr = get_memory_manager()
-        memory_mgr.log_session(agent_name, prompt, response)
-        memory_mgr.add_conversation_entry(agent_name, prompt)
-        memory_mgr.set_current_agent(agent_name)
-    except Exception as e:
-        import traceback
-        print(f"MEMORY ERROR: {e}")
-        traceback.print_exc()
-
-def run():
-    constitution = Path(__file__).resolve().parent.parent / "docs" / "00_CONSTITUTION.md"
-    if not constitution.exists():
-        print("ERROR: Constitution missing")
-        sys.exit(1)
-    input_data = json.loads(sys.stdin.read())
-    agent_name = input_data.get("agent_name")
-    registry = get_registry()
-    prompt = input_data.get("prompt", "")
-    
-    if agent_name and agent_name in registry:
-        agent = registry[agent_name]
-        if agent["status"] == "active":
-            pass  # Use this agent directly
-        elif agent["status"] != "active":
-            print(f"ERROR: Agent {agent_name} is not active (status: {agent['status']})")
-            return
-    else:
-        agent_name = select_agent(prompt, registry)
-        if agent_name is None:
-            print("ERROR: No active agents available in registry")
-            return
-    
-    script_path = registry[agent_name]["script"]
-    if not Path(script_path).is_absolute():
-        script_path = Path(__file__).resolve().parent / script_path
-    
-    try:
-        process = subprocess.Popen(
-            [sys.executable, str(script_path)],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        stdout, stderr = process.communicate(input=json.dumps(input_data))
-        
-        if process.returncode != 0:
-            print(f"ERROR: Failed to execute {script_path}: {stderr}")
-        else:
-            print(stdout)
-            log_interaction(agent_name, prompt, stdout)
-    except Exception as e:
-        print(f"ERROR: {str(e)}")
-        sys.exit(1)
-
-if __name__ == '__main__':
-    run()
+ class Orchestrator:
+-    def __init__(self):
++    def __init__(self):
+         self.shared_memory = self._load_shared_memory()
+-        # Load private memory (strategic info) for SAMI only
+-        self.private_memory = self._load_private_memory()
++        # Load private strategic memory (SAMI‑only)
++        self.private_memory = self._load_private_memory()
+         # Keep a snapshot of the conversation context
+         self.conversation_context = self._load_conversation_context()
++
++    def _load_shared_memory(self):
++        if os.path.isfile(SHARED_MEMORY_FILE):
++            with open(SHARED_MEMORY_FILE, "r") as f:
++                return json.load(f)
++        return {}
++
++    def _load_private_memory(self):
++        if os.path.isfile(PRIVATE_MEMORY_FILE):
++            with open(PRIVATE_MEMORY_FILE, "r") as f:
++                data = json.load(f)
++                # Strip keys that belong to SAMI’s private namespace
++                return {k: v for k, v in data.items() if not k.startswith("_sami_")}
++        return {}
++
++    def _load_conversation_context(self):
++        if os.path.isfile(CONVERSATION_FILE):
++            with open(CONVERSATION_FILE, "r") as f:
++                return json.load(f)
++        return {}
++
++    def save_private_memory(self):
++        # Persist SAMI’s strategic info so it survives restarts
++        with open(PRIVATE_MEMORY_FILE, "w") as f:
++            json.dump(self.private_memory, f)
