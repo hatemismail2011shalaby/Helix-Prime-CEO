@@ -1,3 +1,4 @@
+import os
 """Route Go daemon requests through the Python command center to isolated agents.
 
 The Go engine sends a JSON payload to this module over stdin. The orchestrator
