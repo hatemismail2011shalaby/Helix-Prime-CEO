@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys, json, subprocess, datetime
 from dispatcher import select_agent
+from memory_manager import get_memory_manager
 
 def get_registry():
     base_dir = Path(__file__).resolve().parent.parent
@@ -9,20 +10,12 @@ def get_registry():
         return json.load(f)
 
 def log_interaction(agent_name, prompt, response):
-    memory_path = Path(__file__).resolve().parent.parent / "06_memory" / "memory.json"
+    """Log interaction using memory manager"""
     try:
-        with open(memory_path, 'r') as f:
-            memory = json.load(f)
-        memory["sessions"].append({
-            "timestamp": datetime.datetime.now().isoformat(),
-            "agent": agent_name,
-            "prompt": prompt,
-            "response": response
-        })
-        memory["total_interactions"] += 1
-        memory["last_active"] = datetime.datetime.now().isoformat()
-        with open(memory_path, 'w') as f:
-            json.dump(memory, f, indent=2)
+        memory_mgr = get_memory_manager()
+        memory_mgr.log_session(agent_name, prompt, response)
+        memory_mgr.add_conversation_entry(agent_name, prompt)
+        memory_mgr.set_current_agent(agent_name)
     except Exception as e:
         import traceback
         print(f"MEMORY ERROR: {e}")

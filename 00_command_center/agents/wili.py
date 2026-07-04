@@ -15,6 +15,10 @@ import time
 from pathlib import Path
 from model_backend import get_model_backend
 
+# Import memory manager for agent context
+sys.path.insert(0, str(Path(__file__).parent))
+from memory_manager import get_memory_manager
+
 class WILIAgent:
     """WILI: The Flying Executive - Orchestrates learning and browser interactions"""
     
@@ -37,8 +41,12 @@ class WILIAgent:
         elif command == "list_lessons":
             return self.list_lessons()
         
+        elif command == "context":
+            agent = args.get("agent", "")
+            return self.get_agent_context(agent)
+        
         else:
-            return f"❌ Unknown WILI command: {command}. Try 'teach', 'query', or 'list_lessons'."
+            return f"❌ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', or 'context'."
     
     def teach(self, topic: str) -> str:
         """
@@ -149,6 +157,45 @@ Process ID: {process.pid}"""
         print(f"🧠 WILI processing query: {question}")
         response = self.backend.chat(question)
         return f"WILI's Response:\n{response}"
+    
+    def get_agent_context(self, agent_name: str) -> str:
+        """Get context about what another agent has accomplished"""
+        if not agent_name:
+            agent_name = "SAMI"
+        
+        try:
+            memory_mgr = get_memory_manager()
+            
+            if agent_name.upper() == "SAMI":
+                accomplishments = memory_mgr.get_accomplishments_summary("SAMI")
+                return f"""📊 Context About SAMI:
+━━━━━━━━━━━━━━━━━━━━━━━━
+{accomplishments}
+
+SAMI is the CEO Orchestrator coordinating all agents."""
+            
+            elif agent_name.upper() == "PHILI":
+                accomplishments = memory_mgr.get_accomplishments_summary("PHILI")
+                return f"""📊 Context About PHILI:
+━━━━━━━━━━━━━━━━━━━━━━━━
+{accomplishments}
+
+PHILI is your personal philosopher focusing on self-development."""
+            
+            elif agent_name.upper() == "SUBY":
+                accomplishments = memory_mgr.get_accomplishments_summary("SUBY")
+                return f"""📊 Context About SUBY:
+━━━━━━━━━━━━━━━━━━━━━━━━
+{accomplishments}
+
+SUBY is the creator generating web apps and platforms."""
+            
+            else:
+                all_summaries = memory_mgr.get_all_agent_summaries()
+                return all_summaries
+        
+        except Exception as e:
+            return f"⚠️  Could not retrieve context: {e}"
     
     def list_lessons(self) -> str:
         """List all available lessons"""

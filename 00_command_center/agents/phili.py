@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 from model_backend import get_model_backend
+from memory_manager import get_memory_manager
 
 class PHILIAgent:
     """PHILI: The Philosopher - Personal development and self-awareness coach"""
@@ -462,6 +463,17 @@ def run():
         phili = PHILIAgent()
         response = phili.execute_command(command, args)
         print(response)
+        
+        # Log accomplishment to memory
+        try:
+            memory_mgr = get_memory_manager()
+            memory_mgr.add_accomplishment(
+                "PHILI",
+                f"{command}: {args.get('field', args.get('topic', 'reflection'))[:40]}",
+                {"command": command, "response_preview": response[:100]}
+            )
+        except Exception as e:
+            pass  # Silent fail for memory logging
         
     except json.JSONDecodeError as e:
         print(f"❌ Invalid JSON input: {e}")
