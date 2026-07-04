@@ -1,6 +1,4 @@
-﻿cd "H:\Helix CEO AI Assistant\00_command_center"
-@'
-"""Route Go daemon requests through the Python command center to isolated agents.
+﻿"""Route Go daemon requests through the Python command center to isolated agents.
 
 The Go engine sends a JSON payload to this module over stdin. The orchestrator
 validates the requested agent against the project registry, records the active
@@ -174,4 +172,3 @@ def main() -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     main()
-'@ | Set-Content -Path "orchestrator.py" -Encoding utf8
