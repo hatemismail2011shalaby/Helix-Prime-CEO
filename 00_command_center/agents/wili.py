@@ -1,4 +1,4 @@
-"""
+﻿"""
 WILI - The Flying Executive
 Orchestrates browser-based learning sessions and interactive teaching.
 Handles lesson generation and launches the browser automatically.
@@ -16,7 +16,7 @@ from pathlib import Path
 from model_backend import get_model_backend
 
 # Import memory manager for agent context
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from memory_manager import get_memory_manager
 
 class WILIAgent:
@@ -46,7 +46,7 @@ class WILIAgent:
             return self.get_agent_context(agent)
         
         else:
-            return f"❌ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', or 'context'."
+            return f"â‌Œ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', or 'context'."
     
     def teach(self, topic: str) -> str:
         """
@@ -54,12 +54,12 @@ class WILIAgent:
         Uses subprocess.Popen to run orchestrator.py non-blocking.
         Browser opens automatically.
         """
-        print(f"\n🚁 WILI: Initiating teaching sequence for '{topic}'...")
+        print(f"\nًںڑپ WILI: Initiating teaching sequence for '{topic}'...")
         
         lesson_paths = self.generate_lesson(topic)
         
         if not lesson_paths:
-            return f"❌ Failed to generate lesson for '{topic}'."
+            return f"â‌Œ Failed to generate lesson for '{topic}'."
         
         md_path, html_path = lesson_paths
         
@@ -76,7 +76,7 @@ class WILIAgent:
             self.lessons_dir.mkdir(parents=True, exist_ok=True)
             
             # Generate lesson via model backend
-            print(f"📝 Generating lesson content for '{topic}'...")
+            print(f"ًں“‌ Generating lesson content for '{topic}'...")
             prompt = f"""Create a detailed, structured Markdown lesson about "{topic}". Include:
 1. Introduction
 2. Key Concepts
@@ -91,18 +91,18 @@ Format as valid Markdown without code fences."""
             topic_clean = topic.replace(' ', '_').lower()
             md_path = self.lessons_dir / f"{topic_clean}.md"
             md_path.write_text(lesson_content, encoding='utf-8')
-            print(f"✓ Lesson saved: {md_path}")
+            print(f"âœ“ Lesson saved: {md_path}")
             
             # Convert to HTML (simple version)
             html_path = md_path.with_suffix(".html")
             html_content = self._markdown_to_html(lesson_content, topic)
             html_path.write_text(html_content, encoding='utf-8')
-            print(f"✓ HTML saved: {html_path}")
+            print(f"âœ“ HTML saved: {html_path}")
             
             return (md_path, html_path)
             
         except Exception as e:
-            print(f"❌ Lesson generation failed: {e}")
+            print(f"â‌Œ Lesson generation failed: {e}")
             return None
     
     def _launch_interactive_learning(self, topic: str, md_path: Path, html_path: Path) -> str:
@@ -115,9 +115,9 @@ Format as valid Markdown without code fences."""
             orchestrator_path = self.browser_engine_dir / "orchestrator.py"
             
             if not orchestrator_path.exists():
-                return f"❌ Orchestrator not found at {orchestrator_path}"
+                return f"â‌Œ Orchestrator not found at {orchestrator_path}"
             
-            print(f"🌐 Launching interactive learning session...")
+            print(f"ًںŒگ Launching interactive learning session...")
             print(f"   Orchestrator: {orchestrator_path}")
             print(f"   Topic: {topic}")
             
@@ -132,13 +132,13 @@ Format as valid Markdown without code fences."""
             )
             
             # Return immediately with lesson info while process runs
-            return f"""✓ Teaching session initiated for '{topic}'
+            return f"""âœ“ Teaching session initiated for '{topic}'
    
-📂 Lesson Files:
-   • Markdown: {md_path}
-   • HTML: {html_path}
+ًں“‚ Lesson Files:
+   â€¢ Markdown: {md_path}
+   â€¢ HTML: {html_path}
 
-🌐 Browser Launch: Starting in background...
+ًںŒگ Browser Launch: Starting in background...
    
 The orchestrator is running in interactive mode.
 Your browser should open automatically with the lesson and quiz.
@@ -147,14 +147,14 @@ Press Ctrl+C in the orchestrator window to stop.
 Process ID: {process.pid}"""
             
         except Exception as e:
-            return f"❌ Failed to launch interactive session: {e}"
+            return f"â‌Œ Failed to launch interactive session: {e}"
     
     def query(self, question: str) -> str:
         """Ask WILI a question about the learning content"""
         if not question:
-            return "❌ Please provide a question to query."
+            return "â‌Œ Please provide a question to query."
         
-        print(f"🧠 WILI processing query: {question}")
+        print(f"ًں§  WILI processing query: {question}")
         response = self.backend.chat(question)
         return f"WILI's Response:\n{response}"
     
@@ -168,24 +168,24 @@ Process ID: {process.pid}"""
             
             if agent_name.upper() == "SAMI":
                 accomplishments = memory_mgr.get_accomplishments_summary("SAMI")
-                return f"""📊 Context About SAMI:
-━━━━━━━━━━━━━━━━━━━━━━━━
+                return f"""ًں“ٹ Context About SAMI:
+â”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پ
 {accomplishments}
 
 SAMI is the CEO Orchestrator coordinating all agents."""
             
             elif agent_name.upper() == "PHILI":
                 accomplishments = memory_mgr.get_accomplishments_summary("PHILI")
-                return f"""📊 Context About PHILI:
-━━━━━━━━━━━━━━━━━━━━━━━━
+                return f"""ًں“ٹ Context About PHILI:
+â”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پ
 {accomplishments}
 
 PHILI is your personal philosopher focusing on self-development."""
             
             elif agent_name.upper() == "SUBY":
                 accomplishments = memory_mgr.get_accomplishments_summary("SUBY")
-                return f"""📊 Context About SUBY:
-━━━━━━━━━━━━━━━━━━━━━━━━
+                return f"""ًں“ٹ Context About SUBY:
+â”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پâ”پ
 {accomplishments}
 
 SUBY is the creator generating web apps and platforms."""
@@ -195,19 +195,19 @@ SUBY is the creator generating web apps and platforms."""
                 return all_summaries
         
         except Exception as e:
-            return f"⚠️  Could not retrieve context: {e}"
+            return f"âڑ ï¸ڈ  Could not retrieve context: {e}"
     
     def list_lessons(self) -> str:
         """List all available lessons"""
         if not self.lessons_dir.exists():
-            return "📂 No lessons directory found."
+            return "ًں“‚ No lessons directory found."
         
         lessons = list(self.lessons_dir.glob("*.md"))
         
         if not lessons:
-            return "📂 No lessons available. Use 'teach' command to create one."
+            return "ًں“‚ No lessons available. Use 'teach' command to create one."
         
-        output = "📚 Available Lessons:\n"
+        output = "ًں“ڑ Available Lessons:\n"
         for i, lesson in enumerate(lessons, 1):
             size = lesson.stat().st_size / 1024  # KB
             output += f"   {i}. {lesson.stem} ({size:.1f} KB)\n"
@@ -330,15 +330,15 @@ SUBY is the creator generating web apps and platforms."""
 </head>
 <body>
     <div class="container">
-        <h1>🎓 {topic}</h1>
+        <h1>ًںژ“ {topic}</h1>
         <div class="lesson-content">
             {markdown_content}
         </div>
         <div class="quiz-section">
-            <h2>📝 Interactive Quiz</h2>
+            <h2>ًں“‌ Interactive Quiz</h2>
             <textarea id="ans" placeholder="Enter your detailed response here..."></textarea>
             <button onclick="submitAnswer()">Submit Answer</button>
-            <p id="msg" style="display: none; color: #00e676; margin-top: 10px;">✓ Answer submitted successfully.</p>
+            <p id="msg" style="display: none; color: #00e676; margin-top: 10px;">âœ“ Answer submitted successfully.</p>
         </div>
     </div>
     
@@ -385,10 +385,11 @@ def run():
         print(response)
         
     except json.JSONDecodeError as e:
-        print(f"❌ Invalid JSON input: {e}")
+        print(f"â‌Œ Invalid JSON input: {e}")
     except Exception as e:
-        print(f"❌ WILI Error: {e}")
+        print(f"â‌Œ WILI Error: {e}")
 
 
 if __name__ == "__main__":
     run()
+
