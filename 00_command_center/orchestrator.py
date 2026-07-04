@@ -1,5 +1,4 @@
-import os
-"""Route Go daemon requests through the Python command center to isolated agents.
+﻿"""Route Go daemon requests through the Python command center to isolated agents.
 
 The Go engine sends a JSON payload to this module over stdin. The orchestrator
 validates the requested agent against the project registry, records the active
@@ -12,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -94,6 +94,14 @@ class Orchestrator:
 
         payload = json.dumps({"prompt": prompt}, ensure_ascii=False)
 
+        subprocess_env = os.environ.copy()
+        existing_pythonpath = os.environ.get("PYTHONPATH", "")
+        subprocess_env["PYTHONPATH"] = (
+            str(self.command_center_dir) + os.pathsep + existing_pythonpath
+            if existing_pythonpath
+            else str(self.command_center_dir)
+        )
+
         try:
             completed = subprocess.run(
                 [sys.executable, str(agent_script)],
@@ -104,6 +112,7 @@ class Orchestrator:
                 check=True,
                 cwd=str(self.command_center_dir),
                 encoding="utf-8",
+                env=subprocess_env,
             )
         except subprocess.TimeoutExpired:
             return (
@@ -124,7 +133,6 @@ class Orchestrator:
     def _check_constitution(self) -> None:
         constitution_path = self.project_root / "docs" / "00_CONSTITUTION.md"
         if constitution_path.is_file():
-            constitution_path.read_text(encoding="utf-8")
             LOGGER.info("Constitution file present: %s", constitution_path)
         else:
             LOGGER.warning("Constitution file missing: %s", constitution_path)
