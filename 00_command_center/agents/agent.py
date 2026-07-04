@@ -1,38 +1,34 @@
---- agent.py.orig
-+++ agent.py
-@@ -1,6 +1,9 @@
- import json
- import os
- from pathlib import Path
+﻿"""Shared base utilities for Helix agent scripts."""
 
- class Agent:
-     def __init__(self, name):
-         self.name = name
-+        # Shared memory (used by every agent)
-+        self.shared_memory = self._load_shared_memory()
-+        # Private strategic memory – only SAMI writes this
-+        self.private_memory = self._load_private_memory()
-+
-+    def _load_shared_memory(self):
-+        if os.path.isfile(MEMORY_FILE):
-+            with open(MEMORY_FILE, "r") as f:
-+                return json.load(f)
-+        return {}
-+
-+    def _load_private_memory(self):
-+        if os.path.isfile(PRIVATE_MEMORY_FILE):
-+            with open(PRIVATE_MEMORY_FILE, "r") as f:
-+                data = json.load(f)
-+                # Filter out SAMI‑private keys
-+                return {k: v for k, v in data.items() if not k.startswith("_sami_")}
-+        return {}
-+
-+    def _load_conversation_context(self):
-+        if os.path.isfile(CONVERSATION_FILE):
-+            with open(CONVERSATION_FILE, "r") as f:
-+                return json.load(f)
-+        return {}
-+
-+    def save_private_memory(self):
-+        # Keep SAMI’s strategic info in sync with the shared store
-+        self._save_to_disk()
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Optional
+
+from memory_manager import MemoryManager, get_memory_manager
+from model_backend import ModelBackend, get_model_backend
+
+
+class Agent:
+    """Base class for local Helix agents."""
+
+    def __init__(
+        self,
+        name: str,
+        memory_manager: Optional[MemoryManager] = None,
+        backend: Optional[ModelBackend] = None,
+    ) -> None:
+        self.name = name
+        self.agent_dir = Path(__file__).parent
+        self.command_center_dir = self.agent_dir.parent
+        self.project_root = self.command_center_dir.parent
+        self.memory_manager = memory_manager or get_memory_manager()
+        self.backend = backend or get_model_backend()
+
+    def remember(self, prompt: str, response: str) -> None:
+        """Record a successful agent interaction."""
+        self.memory_manager.add_accomplishment(
+            self.name.upper(),
+            f"Processed: {prompt[:50]}...",
+            {"full_prompt": prompt, "response_preview": response[:100]},
+        )
