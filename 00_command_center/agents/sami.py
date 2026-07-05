@@ -49,6 +49,12 @@ def _record_search(query: str, results: List[str]) -> None:
 
 def _resolve_search_roots(prompt: str) -> List[Path]:
     roots = normalize_query_to_paths(prompt)
+    prompt_lower = prompt.lower()
+
+    if any(keyword in prompt_lower for keyword in ["workspace", "project", "root"]):
+        if PROJECT_ROOT not in roots:
+            roots.append(PROJECT_ROOT)
+
     if not roots:
         roots = [PROJECT_ROOT]
     return roots

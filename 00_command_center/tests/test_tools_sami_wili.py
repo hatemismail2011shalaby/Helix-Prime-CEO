@@ -99,6 +99,21 @@ def test_sami_run_search_prompt_uses_search_instead_of_backend(monkeypatch: pyte
     assert str(sample_file) in captured.out
 
 
+def test_sami_resolves_workspace_to_project_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    project_root = tmp_path / "workspace-root"
+    project_root.mkdir(parents=True)
+    command_center_dir = project_root / "00_command_center"
+    command_center_dir.mkdir(parents=True)
+
+    monkeypatch.chdir(command_center_dir)
+    monkeypatch.setattr(sami, "PROJECT_ROOT", project_root)
+
+    roots = sami._resolve_search_roots("Search my workspace for resume")
+
+    assert project_root in roots
+    assert any(str(path).endswith("workspace-root") for path in roots)
+
+
 def test_wili_teach_creates_html_and_launches_orchestrator(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"
@@ -130,3 +145,21 @@ def test_wili_teach_creates_html_and_launches_orchestrator(tmp_path: Path, monke
     assert "Process ID: 12345" in result
     assert started[0][0][1] == str(orchestrator_script)
     assert started[0][1] == str(orchestrator_dir)
+
+
+def test_wili_generate_lesson_adds_fallback_quiz_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = wili.WILIAgent()
+    lessons_dir = tmp_path / "lessons"
+    lessons_dir.mkdir(parents=True)
+    monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
+    monkeypatch.setattr(agent, "backend", type("B", (), {"chat": lambda self, prompt: "# Test Topic\n## Details\nThis is content without a quiz."})())
+
+    lesson_paths = agent.generate_lesson("Test Topic")
+    assert lesson_paths is not None
+
+    md_path, html_path = lesson_paths
+    saved_markdown = md_path.read_text(encoding="utf-8")
+    saved_html = html_path.read_text(encoding="utf-8")
+
+    assert "## Quiz" in saved_markdown
+    assert "Interactive Quiz" in saved_html

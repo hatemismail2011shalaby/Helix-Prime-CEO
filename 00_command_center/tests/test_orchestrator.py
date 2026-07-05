@@ -63,3 +63,20 @@ def test_dispatch_executes_agent_script_and_returns_stdout(tmp_path: Path) -> No
     result = orchestrator.dispatch("demo", "hello")
 
     assert result == "agent:hello"
+
+
+def test_agent_payload_routes_wili_teach_prompts(tmp_path: Path) -> None:
+    project_root = tmp_path
+    config_dir = project_root / "config"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    (config_dir / "agents.json").write_text(
+        json.dumps({"dummy": {"script": "agents/dummy.py", "status": "active"}}),
+        encoding="utf-8",
+    )
+
+    orchestrator = Orchestrator(project_root=project_root)
+
+    payload = orchestrator._agent_payload("wili", "Teach me about Python functions")
+
+    assert payload["command"] == "teach"
+    assert payload["args"]["topic"] == "Teach me about Python functions"

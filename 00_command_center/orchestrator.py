@@ -129,6 +129,9 @@ class Orchestrator:
     def _agent_payload(self, agent_name: str, prompt: str) -> Dict[str, Any]:
         """Adapt the Go prompt contract to each agent script's command contract."""
         if agent_name == "wili":
+            prompt_lower = prompt.lower().strip()
+            if any(keyword in prompt_lower for keyword in ["teach", "learn", "lesson", "study", "quiz"]):
+                return {"command": "teach", "args": {"topic": prompt}}
             return {"command": "query", "args": {"question": prompt}}
         if agent_name == "phili":
             return {"command": "reflect", "args": {"question": prompt}}

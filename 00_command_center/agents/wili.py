@@ -88,8 +88,21 @@ Format as valid Markdown without code fences."""
             
             lesson_content = self.backend.chat(prompt)
             
+            # Ensure quiz content is present for interactive learning
+            lower_content = lesson_content.lower()
+            if "## quiz" not in lower_content and "quiz:" not in lower_content:
+                lesson_content += (
+                    "\n\n## Quiz\n"
+                    "1. What is the main idea of this lesson?\n"
+                    "- Answer: The main idea is to understand the core concepts of the topic.\n\n"
+                    "2. Name one key concept covered.\n"
+                    "- Answer: One key concept is described in the lesson.\n\n"
+                    "3. How can you apply this topic in a real project?\n"
+                    "- Answer: Apply the knowledge through practical examples and exercises.\n"
+                )
+
             # Save markdown
-            topic_clean = topic.replace(' ', '_').lower()
+            topic_clean = "".join(c if c.isalnum() or c in "_-" else "_" for c in topic.lower())
             md_path = self.lessons_dir / f"{topic_clean}.md"
             md_path.write_text(lesson_content, encoding='utf-8')
             print(f"âœ“ Lesson saved: {md_path}")
@@ -219,10 +232,16 @@ SUBY is the creator generating web apps and platforms."""
         """Convert markdown lesson to basic interactive HTML"""
         
         # Simple markdown to HTML conversion
-        html_content = markdown_content.replace('\n# ', '\n<h1>')
+        html_content = markdown_content.replace('\n### ', '\n<h3>')
         html_content = html_content.replace('\n## ', '\n<h2>')
-        html_content = html_content.replace('\n### ', '\n<h3>')
-        
+        html_content = html_content.replace('\n# ', '\n<h1>')
+        html_content = html_content.replace('\n- ', '\n<li>')
+
+        # Ensure list tags are wrapped if they exist
+        if '<li>' in html_content:
+            html_content = html_content.replace('\n<li>', '\n<ul>\n<li>')
+            html_content = html_content.replace('\n<h', '</li>\n</ul>\n<h', 1) if '</li>' in html_content else html_content
+
         # Wrap in HTML structure
         return f"""<!DOCTYPE html>
 <html lang="en">
