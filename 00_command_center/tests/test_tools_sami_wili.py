@@ -147,6 +147,53 @@ def test_wili_teach_creates_html_and_launches_orchestrator(tmp_path: Path, monke
     assert started[0][1] == str(orchestrator_dir)
 
 
+def test_wili_start_lesson_host_command_starts_http_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = wili.WILIAgent()
+    lessons_dir = tmp_path / "lessons"
+    lessons_dir.mkdir(parents=True)
+    monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
+
+    started = []
+    def fake_popen(args: list[str], cwd: str, stdout: Any, stderr: Any, text: bool) -> Any:
+        started.append((args, cwd))
+        return type("P", (), {"pid": 54321})()
+
+    monkeypatch.setattr(wili.subprocess, "Popen", fake_popen)
+
+    result = agent.start_lesson_host(8000)
+
+    assert "Local lesson host started on port 8000." in result
+    assert "Serving:" in result
+    assert "terminate process PID 54321" in result
+    assert started[0][0] == [sys.executable, "-m", "http.server", "8000"]
+    assert started[0][1] == str(lessons_dir)
+
+
+def test_wili_teach_warns_when_local_host_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = wili.WILIAgent()
+    lessons_dir = tmp_path / "lessons"
+    lessons_dir.mkdir(parents=True)
+    orchestrator_dir = tmp_path / "browser_engine"
+    orchestrator_dir.mkdir(parents=True)
+    orchestrator_script = orchestrator_dir / "orchestrator.py"
+    orchestrator_script.write_text("print('orchestrator started')", encoding="utf-8")
+
+    monkeypatch.setattr(agent, "browser_engine_dir", orchestrator_dir)
+    monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
+    monkeypatch.setattr(agent, "backend", type("B", (), {"chat": lambda self, prompt: "# Topic\n## Details\nLearning content."})())
+    monkeypatch.setattr(agent, "_is_local_host_reachable", lambda host, port, timeout=0.4: False)
+
+    def fake_popen(args: list[str], cwd: str, stdout: Any, stderr: Any, text: bool) -> Any:
+        return type("P", (), {"pid": 12345})()
+
+    monkeypatch.setattr(wili.subprocess, "Popen", fake_popen)
+
+    result = agent.teach("Test Topic")
+
+    assert "WARNING: A local lesson host is not currently running on localhost:8000." in result
+    assert "http://localhost:8000/test_topic.html" in result
+
+
 def test_wili_generate_lesson_adds_fallback_quiz_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"

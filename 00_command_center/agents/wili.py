@@ -46,12 +46,16 @@ class WILIAgent:
         elif command == "list_lessons":
             return self.list_lessons()
         
+        elif command == "start_lesson_host":
+            port = int(args.get("port", 8000))
+            return self.start_lesson_host(port)
+        
         elif command == "context":
             agent = args.get("agent", "")
             return self.get_agent_context(agent)
         
         else:
-            return f"â‌Œ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', or 'context'."
+            return f"â‌Œ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', 'start_lesson_host', or 'context'."
     
     def teach(self, topic: str) -> str:
         """
@@ -202,7 +206,8 @@ Format as valid Markdown without code fences."""
             else:
                 host_message = (
                     f"Lesson HTML is generated at: {html_path}\n"
-                    f"If a local static host is running for lessons, open: {lesson_url}"
+                    f"WARNING: A local lesson host is not currently running on localhost:8000.\n"
+                    f"Start a static host for the lessons directory, then open: {lesson_url}"
                 )
 
             return f"""âœ“ Teaching session initiated for '{topic}'
@@ -222,6 +227,31 @@ Process ID: {process.pid}"""
             
         except Exception as e:
             return f"â‌Œ Failed to launch interactive session: {e}"
+
+    def start_lesson_host(self, port: int = 8000) -> str:
+        """Start a local static lesson host serving the lessons directory."""
+        try:
+            if not self.lessons_dir.exists():
+                return f"â‌Œ Lessons directory not found: {self.lessons_dir}"
+
+            command = [sys.executable, "-m", "http.server", str(port)]
+            process = subprocess.Popen(
+                command,
+                cwd=str(self.lessons_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+
+            lesson_url = f"http://localhost:{port}/"
+            return (
+                f"âœ“ Local lesson host started on port {port}.\n"
+                f"Serving: {self.lessons_dir}\n"
+                f"Open the lesson index at: {lesson_url}\n"
+                f"To stop it, terminate process PID {process.pid}."
+            )
+        except Exception as e:
+            return f"â‌Œ Failed to start lesson host: {e}"
     
     def query(self, question: str) -> str:
         """Ask WILI a question about the learning content"""
