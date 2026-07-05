@@ -52,20 +52,33 @@ class WILIAgent:
     def teach(self, topic: str) -> str:
         """
         Generate a lesson on the given topic and launch browser in interactive mode.
-        Uses subprocess.Popen to run orchestrator.py non-blocking.
-        Browser opens automatically.
+        Delegate full lesson generation and interactive session to the
+        centralized learning orchestrator (existing Education Center).
+        This avoids duplicating generation logic and ensures the learning
+        engine owns lesson/quiz lifecycle.
         """
-        print(f"\nًںڑپ WILI: Initiating teaching sequence for '{topic}'...")
-        
-        lesson_paths = self.generate_lesson(topic)
-        
-        if not lesson_paths:
-            return f"â‌Œ Failed to generate lesson for '{topic}'."
-        
-        md_path, html_path = lesson_paths
-        
-        # Launch orchestrator.py in interactive mode (non-blocking) using Popen
-        return self._launch_interactive_learning(topic, md_path, html_path)
+        print(f"\nًںڑپ WILI: Delegating teaching sequence for '{topic}' to Learning Orchestrator...")
+        return self._delegate_to_learning_orchestrator(topic)
+
+    def _delegate_to_learning_orchestrator(self, topic: str) -> str:
+        """Call the browser_engine/orchestrator.py as a subprocess and return status."""
+        try:
+            orchestrator_path = self.browser_engine_dir / "orchestrator.py"
+            if not orchestrator_path.exists():
+                return f"â‌Œ Orchestrator not found at {orchestrator_path}"
+
+            print(f"ًںŒگ Launching learning orchestrator for topic: {topic}")
+            process = subprocess.Popen(
+                [sys.executable, str(orchestrator_path), topic],
+                cwd=str(self.browser_engine_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+
+            return f"âœ“ Teaching session initiated for '{topic}' (Orchestrator PID: {process.pid}).\nThe Learning Orchestrator now controls lesson generation, rendering, and the feedback server."
+        except Exception as e:
+            return f"â‌Œ Failed to delegate to learning orchestrator: {e}"
     
     def generate_lesson(self, topic: str) -> tuple[Path, Path] | None:
         """
