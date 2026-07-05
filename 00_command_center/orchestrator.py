@@ -185,4 +185,11 @@ def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    # Ensure stdout uses UTF-8 to avoid UnicodeEncodeError when printing
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        # Older Python builds or unusual environments may not support reconfigure;
+        # in that case fall back to the default behavior.
+        pass
     main()
