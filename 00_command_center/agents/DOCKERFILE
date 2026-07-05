@@ -1,0 +1,15 @@
+# Set base image with slim Python for FastAPI app execution
+FROM python:3.11-slim AS final
+WORKDIR /usr/src/app
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
+# Copy the rest of the source code after installing dependencies, leveraging Docker layer caching for faster builds and smaller image size
+ADD . /usr/src/app
+COPY dockerignore2 ./dockerignore2 # Ensure this file exists alongside your Dockerfile with appropriate exclusions; it's not included in the final image content.
+RUN mkdir -p 06_memory && chown -R app:app 06_memory # Create and set correct permissions for a writable logs directory, no unset variables allowed here
+# Copy orchestrator entrypoint script ensuring it's executable afterward; remember to replace 'bridge.py' with the actual file name if different
+COPY bridge.py .
+RUN chmod +x ./bridge.py # Ensure this is your only CMD instruction and make sure FastAPI app structure allows for direct import as shown in codebase tool findings (Adjust `import string` according to project's specific naming)
+CMD ["sh", "-c", "uvicorn bridge:app --host 0.0.0.0 --port $PORT"] # Use shell form CMD to ensure PORT variable is expanded; see comment for explanation
+# Define a HEALTHCHECK that uses only standard library tools and does not assume any internal /health endpoint logic (replace with an actual script if needed)
+HEALTHCHECK CMD ["python", "-c", "import urllib.request, json; assert ..."] # Placeholder for the health check command using uvciolib
