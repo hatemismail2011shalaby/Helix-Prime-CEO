@@ -51,7 +51,18 @@ class CloudBackend(ModelBackend):
 
 
 def get_model_backend() -> ModelBackend:
-    backend_type = os.environ.get("HELIX_MODEL_BACKEND", "echo").lower().strip()
+    """Return the preferred ModelBackend.
+
+    Behavior:
+    - If `HELIX_MODEL_BACKEND` is set, honor it (cloud/ollama/echo/local/test).
+    - If not set, prefer Ollama when available, otherwise fall back to EchoBackend
+      and emit a friendly hint so users know how to enable a real LLM backend.
+    """
+    env_val = os.environ.get("HELIX_MODEL_BACKEND")
+    if env_val:
+        backend_type = env_val.lower().strip()
+    else:
+        backend_type = "ollama"
 
     if backend_type == "cloud":
         api_key = os.environ.get("GROQ_API_KEY")
@@ -60,7 +71,18 @@ def get_model_backend() -> ModelBackend:
         return CloudBackend(api_key=api_key)
 
     if backend_type == "ollama":
-        return OllamaBackend()
+        try:
+            return OllamaBackend()
+        except Exception:
+            # Ollama not available - fall back to local echo backend but
+            # provide a clear hint in stderr so users can enable a real backend.
+            print(
+                "[helix] Warning: Ollama backend unavailable. "
+                "Falling back to local Echo backend. To enable a real LLM, "
+                "set HELIX_MODEL_BACKEND=ollama and ensure the ollama package/service is available.",
+                file=sys.stderr,
+            )
+            return EchoBackend()
 
     if backend_type in {"echo", "local", "test"}:
         return EchoBackend()
