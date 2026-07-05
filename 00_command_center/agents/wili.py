@@ -10,11 +10,14 @@ sys.stdout.reconfigure(encoding='utf-8')
 import json
 import os
 import re
+import socket
 import subprocess
 import threading
 import time
 from pathlib import Path
 from model_backend import get_model_backend
+
+LOCAL_LESSON_HOST = "http://localhost:8000"
 
 # Import memory manager for agent context
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -102,6 +105,17 @@ class WILIAgent:
             )
         except Exception as e:
             return f"â‌Œ Failed to delegate to learning orchestrator: {e}"
+
+    def _build_local_lesson_url(self, topic: str) -> str:
+        topic_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", topic.strip().lower())
+        return f"{LOCAL_LESSON_HOST}/{topic_clean}.html"
+
+    def _is_local_host_reachable(self, host: str, port: int, timeout: float = 0.4) -> bool:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                return True
+        except OSError:
+            return False
     
     def generate_lesson(self, topic: str) -> tuple[Path, Path] | None:
         """
@@ -180,8 +194,17 @@ Format as valid Markdown without code fences."""
                 stderr=subprocess.PIPE,
                 text=True
             )
-            
-            # Return immediately with lesson info while process runs
+
+            lesson_url = self._build_local_lesson_url(topic)
+            host_ready = self._is_local_host_reachable("127.0.0.1", 8000)
+            if host_ready:
+                host_message = f"Open the lesson in your browser at: {lesson_url}"
+            else:
+                host_message = (
+                    f"Lesson HTML is generated at: {html_path}\n"
+                    f"If a local static host is running for lessons, open: {lesson_url}"
+                )
+
             return f"""âœ“ Teaching session initiated for '{topic}'
    
 ًں“‚ Lesson Files:
@@ -189,7 +212,8 @@ Format as valid Markdown without code fences."""
    â€¢ HTML: {html_path}
 
 ًںŒگ Browser Launch: Starting in background...
-   
+{host_message}
+
 The orchestrator is running in interactive mode.
 Your browser should open automatically with the lesson and quiz.
 Press Ctrl+C in the orchestrator window to stop.
