@@ -7,8 +7,28 @@ from typing import Any, Dict, List
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 app = FastAPI(title="Helix CEO AI Assistant", version="1.0.0")
+
+# Create a shared orchestrator instance and executor for handling agent dispatches
+_ORCHESTRATOR = None
+_EXECUTOR = ThreadPoolExecutor(max_workers=4)
+
+def get_orchestrator():
+  global _ORCHESTRATOR
+  if _ORCHESTRATOR is None:
+    # Ensure the command center directory is importable before creating the orchestrator
+    PROJECT_ROOT = Path(__file__).resolve().parent
+    COMMAND_CENTER_DIR = PROJECT_ROOT / "00_command_center"
+    sys.path.insert(0, str(COMMAND_CENTER_DIR))
+    try:
+      from orchestrator import Orchestrator  # type: ignore
+    except Exception:
+      raise
+
+    _ORCHESTRATOR = Orchestrator()
+  return _ORCHESTRATOR
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 COMMAND_CENTER_DIR = PROJECT_ROOT / "00_command_center"
@@ -82,7 +102,7 @@ async def get_chat_ui() -> HTMLResponse:
     <main class="workspace">
       <div class="card">
         <h1>Helix CEO AI Assistant</h1>
-        <p>ADHD-friendly command center with visible thinking, agent colors, and workspace context.</p>
+        <p>Fast, responsive command center with visible thinking, agent colors, and workspace context.</p>
         <div class="agent-row">
           <div class="agent-chip sami">SAMI</div>
           <div class="agent-chip wili">WILI</div>
@@ -168,21 +188,21 @@ async def chat(payload: Dict[str, str]) -> Dict[str, Any]:
     if not message:
         return {"reply": "Please enter a message.", "agent": agent_name}
 
-    process = subprocess.run(
-        [sys.executable, str(ORCHESTRATOR_PATH)],
-        input=json.dumps({"agent_name": agent_name, "prompt": message}),
-        text=True,
-        capture_output=True,
-        cwd=str(COMMAND_CENTER_DIR),
-        timeout=90,
-        check=False,
-        encoding="utf-8",
-        env={**os.environ, "PYTHONPATH": str(COMMAND_CENTER_DIR)},
-    )
+    timeout_seconds = int(os.environ.get("HELIX_AGENT_TIMEOUT", "300"))
 
-    if process.returncode != 0:
-        reply = (process.stderr or process.stdout).strip() or "Agent execution failed."
-    else:
-        reply = process.stdout.strip() or "No response returned."
+    try:
+      orchestrator = get_orchestrator()
+    except RegistryLoadError as exc:
+      return {"reply": f"Error: could not load agent registry: {exc}", "agent": agent_name}
+
+    # Run dispatch in a thread to allow a configurable timeout without subprocesses
+    future = _EXECUTOR.submit(orchestrator.dispatch, agent_name, message)
+    try:
+      reply = future.result(timeout=timeout_seconds)
+    except FuturesTimeoutError:
+      future.cancel()
+      return {"reply": f"Error: agent '{agent_name}' timed out after {timeout_seconds} seconds.", "agent": agent_name}
+    except Exception as exc:
+      return {"reply": f"Error: agent execution failed: {exc}", "agent": agent_name}
 
     return {"reply": reply, "agent": agent_name}

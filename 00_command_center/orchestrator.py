@@ -22,7 +22,7 @@ from memory_manager import get_memory_manager
 
 
 LOGGER = logging.getLogger(__name__)
-SUBPROCESS_TIMEOUT_SECONDS = 60
+SUBPROCESS_TIMEOUT_SECONDS = int(os.environ.get("HELIX_AGENT_TIMEOUT", "180"))
 
 
 class RegistryLoadError(Exception):
@@ -102,7 +102,7 @@ class Orchestrator:
                 text=True,
                 capture_output=True,
                 timeout=SUBPROCESS_TIMEOUT_SECONDS,
-                check=True,
+                check=False,
                 cwd=str(self.command_center_dir),
                 encoding="utf-8",
                 env=subprocess_env,
@@ -112,14 +112,17 @@ class Orchestrator:
                 f"Error: agent '{agent_name}' timed out after "
                 f"{SUBPROCESS_TIMEOUT_SECONDS} seconds."
             )
-        except subprocess.CalledProcessError as exc:
-            stderr = (exc.stderr or "").strip()
-            detail = f" Stderr: {stderr}" if stderr else ""
-            return f"Error: agent '{agent_name}' failed with exit code {exc.returncode}.{detail}"
         except OSError as exc:
             return f"Error: could not execute agent '{agent_name}': {exc}"
 
-        response = completed.stdout.strip()
+        # If the agent exited with a non-zero code, prefer stderr for diagnostics.
+        response = (completed.stdout or "").strip()
+        if completed.returncode != 0:
+            stderr = (completed.stderr or "").strip()
+            if stderr:
+                response = f"Error: agent '{agent_name}' failed: {stderr}"
+            else:
+                response = f"Error: agent '{agent_name}' exited with code {completed.returncode}."
         self.memory_manager.log_session(agent_name, prompt, response)
         return response
 
