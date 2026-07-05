@@ -9,6 +9,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 import json
 import os
+import re
 import subprocess
 import threading
 import time
@@ -52,16 +53,21 @@ class WILIAgent:
     def teach(self, topic: str) -> str:
         """
         Generate a lesson on the given topic and launch browser in interactive mode.
-        Delegate full lesson generation and interactive session to the
-        centralized learning orchestrator (existing Education Center).
-        This avoids duplicating generation logic and ensures the learning
-        engine owns lesson/quiz lifecycle.
+        Delegate the interactive learning session to the centralized learning orchestrator.
         """
-        print(f"\nًںڑپ WILI: Delegating teaching sequence for '{topic}' to Learning Orchestrator...")
-        return self._delegate_to_learning_orchestrator(topic)
+        print(f"\nًںڑپ WILI: Generating lesson for '{topic}' and launching learning orchestrator...")
+        lesson_paths = self.generate_lesson(topic)
+        if lesson_paths is None:
+            return f"â‌Œ Failed to generate lesson for '{topic}'."
+
+        md_path, html_path = lesson_paths
+        if not html_path.exists():
+            return f"â‌Œ Lesson HTML file was not created for '{topic}'."
+
+        return self._launch_interactive_learning(topic, md_path, html_path)
 
     def _delegate_to_learning_orchestrator(self, topic: str) -> str:
-        """Call the browser_engine/orchestrator.py as a subprocess and return status."""
+        """Call the browser_engine/orchestrator.py as a subprocess and return the lesson URL."""
         try:
             orchestrator_path = self.browser_engine_dir / "orchestrator.py"
             if not orchestrator_path.exists():
@@ -76,7 +82,24 @@ class WILIAgent:
                 text=True,
             )
 
-            return f"âœ“ Teaching session initiated for '{topic}' (Orchestrator PID: {process.pid}).\nThe Learning Orchestrator now controls lesson generation, rendering, and the feedback server."
+            # Wait briefly to allow the orchestrator to generate the HTML file.
+            time.sleep(6)
+
+            topic_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", topic.strip().lower())
+            html_path = self.browser_engine_dir.parent / "lessons" / f"{topic_clean}.html"
+            if html_path.exists():
+                file_url = html_path.absolute().as_uri()
+                return (
+                    f"âœ“ Teaching session initiated for '{topic}' (Orchestrator PID: {process.pid}).\n"
+                    f"Lesson HTML is available at: {file_url}\n"
+                    f"Open the URL above in your browser to continue learning."
+                )
+
+            return (
+                f"âœ“ Teaching session initiated for '{topic}' (Orchestrator PID: {process.pid}).\n"
+                "Learning Orchestrator is starting. The lesson HTML file has not yet appeared, "
+                "but should be available shortly under the learning system lessons directory."
+            )
         except Exception as e:
             return f"â‌Œ Failed to delegate to learning orchestrator: {e}"
     
