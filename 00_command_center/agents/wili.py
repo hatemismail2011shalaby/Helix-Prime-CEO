@@ -31,6 +31,7 @@ class WILIAgent:
         self.project_root = Path(__file__).resolve().parents[2]
         self.browser_engine_dir = self.project_root.parent / "AI Automation Engineering" / "02_learning_system" / "browser_engine"
         self.lessons_dir = self.browser_engine_dir / "lessons"
+        self.lesson_host_process: subprocess.Popen | None = None
         
     def execute_command(self, command: str, args: dict) -> str:
         """Main command dispatcher for WILI"""
@@ -49,13 +50,16 @@ class WILIAgent:
         elif command == "start_lesson_host":
             port = int(args.get("port", 8000))
             return self.start_lesson_host(port)
+
+        elif command == "stop_lesson_host":
+            return self.stop_lesson_host()
         
         elif command == "context":
             agent = args.get("agent", "")
             return self.get_agent_context(agent)
         
         else:
-            return f"â‌Œ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', 'start_lesson_host', or 'context'."
+            return f"â‌Œ Unknown WILI command: {command}. Try 'teach', 'query', 'list_lessons', 'start_lesson_host', 'stop_lesson_host', or 'context'."
     
     def teach(self, topic: str) -> str:
         """
@@ -244,6 +248,7 @@ Process ID: {process.pid}"""
             )
 
             lesson_url = f"http://localhost:{port}/"
+            self.lesson_host_process = process
             return (
                 f"âœ“ Local lesson host started on port {port}.\n"
                 f"Serving: {self.lessons_dir}\n"
@@ -252,6 +257,31 @@ Process ID: {process.pid}"""
             )
         except Exception as e:
             return f"â‌Œ Failed to start lesson host: {e}"
+
+    def stop_lesson_host(self) -> str:
+        """Stop the previously started local lesson host process cleanly."""
+        if self.lesson_host_process is None:
+            return "â‌Œ No local lesson host process is currently running."
+
+        if self.lesson_host_process.poll() is not None:
+            self.lesson_host_process = None
+            return "âœ“ The local lesson host process has already exited."
+
+        try:
+            self.lesson_host_process.terminate()
+            self.lesson_host_process.wait(timeout=5)
+            pid = self.lesson_host_process.pid
+            self.lesson_host_process = None
+            return f"âœ“ Local lesson host stopped cleanly (PID {pid})."
+        except Exception:
+            try:
+                self.lesson_host_process.kill()
+                self.lesson_host_process.wait(timeout=2)
+                pid = self.lesson_host_process.pid
+                self.lesson_host_process = None
+                return f"âœ“ Local lesson host force-stopped (PID {pid})."
+            except Exception as e:
+                return f"â‌Œ Failed to stop the local lesson host cleanly: {e}"
     
     def query(self, question: str) -> str:
         """Ask WILI a question about the learning content"""

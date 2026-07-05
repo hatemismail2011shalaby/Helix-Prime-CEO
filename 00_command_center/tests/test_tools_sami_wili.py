@@ -169,6 +169,21 @@ def test_wili_start_lesson_host_command_starts_http_server(tmp_path: Path, monke
     assert started[0][1] == str(lessons_dir)
 
 
+def test_wili_stop_lesson_host_stops_started_process(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = wili.WILIAgent()
+    lessons_dir = tmp_path / "lessons"
+    lessons_dir.mkdir(parents=True)
+    monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
+
+    fake_proc = type("P", (), {"pid": 54321, "poll": lambda self: None, "terminate": lambda self: None, "wait": lambda self, timeout=5: None})()
+    agent.lesson_host_process = fake_proc
+
+    result = agent.stop_lesson_host()
+
+    assert "Local lesson host stopped cleanly (PID 54321)." in result
+    assert agent.lesson_host_process is None
+
+
 def test_wili_teach_warns_when_local_host_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"
