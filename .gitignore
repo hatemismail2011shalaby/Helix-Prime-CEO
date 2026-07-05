@@ -136,3 +136,8 @@ __azurite_db*__.json
 notepad.env.txt
 *.env.txt
 *.txt.env
+
+notepad.env.txt
+*.env.txt
+*.txt.env
+*.env
