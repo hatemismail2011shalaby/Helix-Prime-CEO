@@ -19,7 +19,8 @@ class PHILIAgent:
     
     def __init__(self):
         self.backend = get_model_backend()
-        self.memory_dir = Path(__file__).parent.parent.parent / "Helix CEO AI Assistant" / "06_memory"
+        self.project_root = Path(__file__).resolve().parents[2]
+        self.memory_dir = self.project_root / "06_memory"
         self.phili_profile_file = self.memory_dir / "phili_personal_profile.json"
         self.mood_log_file = self.memory_dir / "phili_mood_log.json"
         self.rhythm_analysis_file = self.memory_dir / "phili_rhythm_patterns.json"

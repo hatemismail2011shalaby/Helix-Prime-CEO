@@ -24,7 +24,8 @@ class WILIAgent:
     
     def __init__(self):
         self.backend = get_model_backend()
-        self.browser_engine_dir = Path(__file__).parent.parent.parent / "AI Automation Engineering" / "02_learning_system" / "browser_engine"
+        self.project_root = Path(__file__).resolve().parents[2]
+        self.browser_engine_dir = self.project_root.parent / "AI Automation Engineering" / "02_learning_system" / "browser_engine"
         self.lessons_dir = self.browser_engine_dir / "lessons"
         
     def execute_command(self, command: str, args: dict) -> str:

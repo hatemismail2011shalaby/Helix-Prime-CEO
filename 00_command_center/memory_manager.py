@@ -36,8 +36,8 @@ class MemoryManager:
             if self.shared_memory_file.exists():
                 with open(self.shared_memory_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-        except Exception as e:
-            print(f"⚠️  Error loading shared memory: {e}")
+        except (json.JSONDecodeError, OSError, TypeError, ValueError) as exc:
+            print(f"⚠️  Error loading shared memory: {exc}")
         
         return self._init_shared_memory()
     
@@ -58,8 +58,8 @@ class MemoryManager:
             with open(self.shared_memory_file, 'w', encoding='utf-8') as f:
                 json.dump(memory, f, indent=2, ensure_ascii=False)
             return True
-        except Exception as e:
-            print(f"❌ Error saving shared memory: {e}")
+        except OSError as exc:
+            print(f"❌ Error saving shared memory: {exc}")
             return False
     
     def log_session(self, agent_name: str, prompt: str, response: str) -> bool:
@@ -76,8 +76,8 @@ class MemoryManager:
             memory["last_active"] = datetime.now().isoformat()
             
             return self.save_shared_memory(memory)
-        except Exception as e:
-            print(f"❌ Error logging session: {e}")
+        except (KeyError, TypeError, ValueError, OSError) as exc:
+            print(f"❌ Error logging session: {exc}")
             return False
     
     # ========== AGENT ACCOMPLISHMENTS ==========
@@ -93,8 +93,8 @@ class MemoryManager:
                     return accomplishments[agent_name]
                 
                 return accomplishments
-        except Exception as e:
-            print(f"⚠️  Error loading accomplishments: {e}")
+        except (json.JSONDecodeError, OSError, TypeError, ValueError) as exc:
+            print(f"⚠️  Error loading accomplishments: {exc}")
         
         return {}
     
@@ -120,8 +120,8 @@ class MemoryManager:
                 json.dump(accomplishments, f, indent=2, ensure_ascii=False)
             
             return True
-        except Exception as e:
-            print(f"❌ Error adding accomplishment: {e}")
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"❌ Error adding accomplishment: {exc}")
             return False
     
     def get_accomplishments_summary(self, agent_name: str) -> str:
@@ -146,8 +146,8 @@ class MemoryManager:
             if self.sami_strategic_file.exists():
                 with open(self.sami_strategic_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-        except Exception as e:
-            print(f"⚠️  Error loading SAMI strategy: {e}")
+        except (json.JSONDecodeError, OSError, TypeError, ValueError) as exc:
+            print(f"⚠️  Error loading SAMI strategy: {exc}")
         
         return self._init_sami_strategy()
     
@@ -167,8 +167,8 @@ class MemoryManager:
             with open(self.sami_strategic_file, 'w', encoding='utf-8') as f:
                 json.dump(strategy, f, indent=2, ensure_ascii=False)
             return True
-        except Exception as e:
-            print(f"❌ Error saving SAMI strategy: {e}")
+        except OSError as exc:
+            print(f"❌ Error saving SAMI strategy: {exc}")
             return False
     
     def add_directive(self, directive: str, agents: List[str], priority: str = "medium") -> bool:
@@ -183,8 +183,8 @@ class MemoryManager:
                 "status": "active"
             })
             return self.save_sami_strategy(strategy)
-        except Exception as e:
-            print(f"❌ Error adding directive: {e}")
+        except (KeyError, TypeError, ValueError, OSError) as exc:
+            print(f"❌ Error adding directive: {exc}")
             return False
     
     # ========== AGENT CONTEXT ==========
@@ -195,8 +195,8 @@ class MemoryManager:
             if self.agent_context_file.exists():
                 with open(self.agent_context_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-        except Exception as e:
-            print(f"⚠️  Error loading agent context: {e}")
+        except (json.JSONDecodeError, OSError, TypeError, ValueError) as exc:
+            print(f"⚠️  Error loading agent context: {exc}")
         
         return {
             "current_agent": None,
@@ -216,8 +216,8 @@ class MemoryManager:
                 json.dump(context, f, indent=2, ensure_ascii=False)
             
             return True
-        except Exception as e:
-            print(f"❌ Error setting current agent: {e}")
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"❌ Error setting current agent: {exc}")
             return False
     
     def add_conversation_entry(self, agent_name: str, message: str) -> bool:
@@ -236,8 +236,8 @@ class MemoryManager:
                 json.dump(context, f, indent=2, ensure_ascii=False)
             
             return True
-        except Exception as e:
-            print(f"❌ Error adding conversation entry: {e}")
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"❌ Error adding conversation entry: {exc}")
             return False
     
     # ========== CONTEXT RETRIEVAL ==========
@@ -285,8 +285,13 @@ class MemoryManager:
 _memory_manager = None
 
 def get_memory_manager(memory_dir: Optional[Path] = None) -> MemoryManager:
-    """Get or create the memory manager instance"""
+    """Get or create the memory manager instance."""
     global _memory_manager
     if _memory_manager is None:
         _memory_manager = MemoryManager(memory_dir)
+        return _memory_manager
+
+    if memory_dir is not None and _memory_manager.memory_dir != memory_dir.resolve():
+        _memory_manager = MemoryManager(memory_dir)
+
     return _memory_manager

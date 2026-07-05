@@ -5,7 +5,7 @@ import json
 def validate_registry(registry: Dict[str, Dict[str, Any]]) -> List[str]:
     required_fields = {"script", "capabilities", "status", "max_concurrent"}
     allowed_statuses = {"active", "disabled", "maintenance"}
-    allowed_capabilities = {"general_reasoning", "conversation"}
+    allowed_capabilities = {"general_reasoning", "conversation", "learning", "reflection", "creation"}
     errors = []
     for agent_id, agent_data in registry.items():
         if not isinstance(agent_data, dict):

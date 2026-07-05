@@ -33,9 +33,9 @@ class Orchestrator:
     """Coordinates registry validation, memory updates, and agent execution."""
 
     def __init__(self, project_root: Optional[Path] = None) -> None:
-        self.project_root = project_root or Path(__file__).parent.parent
-        self.command_center_dir = Path(__file__).parent
-        self.memory_manager = get_memory_manager()
+        self.project_root = (project_root or Path(__file__).resolve().parents[1]).resolve()
+        self.command_center_dir = Path(__file__).resolve().parent
+        self.memory_manager = get_memory_manager(memory_dir=self.project_root / "06_memory")
         self.registry = self.load_registry()
         self._check_constitution()
 
@@ -44,7 +44,7 @@ class Orchestrator:
         registry_path = self.project_root / "config" / "agents.json"
 
         try:
-            with registry_path.open("r", encoding="utf-8") as registry_file:
+            with registry_path.open("r", encoding="utf-8-sig") as registry_file:
                 registry = json.load(registry_file)
         except FileNotFoundError as exc:
             raise RegistryLoadError(f"Agent registry not found: {registry_path}") from exc

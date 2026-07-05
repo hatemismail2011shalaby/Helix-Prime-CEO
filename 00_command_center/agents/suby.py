@@ -19,10 +19,11 @@ class SUBYAgent:
     
     def __init__(self):
         self.backend = get_model_backend()
-        self.workspace_dir = Path(__file__).parent.parent.parent / "generated_apps"
+        self.project_root = Path(__file__).resolve().parents[2]
+        self.workspace_dir = self.project_root / "generated_apps"
         self.templates_dir = self.workspace_dir / "templates"
         self.projects_dir = self.workspace_dir / "projects"
-        self.memory_dir = Path(__file__).parent.parent.parent / "Helix CEO AI Assistant" / "06_memory"
+        self.memory_dir = self.project_root / "06_memory"
         self.projects_log_file = self.memory_dir / "suby_projects.json"
         
         # Create directories
