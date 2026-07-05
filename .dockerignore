@@ -1,0 +1,9 @@
+﻿.git
+__pycache__
+*.pyc
+.venv
+venv
+tests/
+.env
+node_modules
+06_memory/*.json
