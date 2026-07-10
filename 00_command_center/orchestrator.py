@@ -12,6 +12,20 @@ from __future__ import annotations
 import json
 import logging
 import os
+
+def _load_env_file(path: str = ".env") -> None:
+    """Load KEY=VALUE pairs from a local .env file into os.environ if not already set."""
+    if not os.path.isfile(path):
+        return
+    with open(path, "r", encoding="utf-8") as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip())
+
+_load_env_file()
 import subprocess
 import sys
 from pathlib import Path
@@ -22,7 +36,7 @@ from memory_manager import get_memory_manager
 
 
 LOGGER = logging.getLogger(__name__)
-SUBPROCESS_TIMEOUT_SECONDS = int(os.environ.get("HELIX_AGENT_TIMEOUT", "180"))
+SUBPROCESS_TIMEOUT_SECONDS = int(os.environ.get("HELIX_AGENT_TIMEOUT", "600"))
 
 
 class RegistryLoadError(Exception):

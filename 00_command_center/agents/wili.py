@@ -349,20 +349,12 @@ SUBY is the creator generating web apps and platforms."""
         return output
     
     def _markdown_to_html(self, markdown_content: str, topic: str) -> str:
-        """Convert markdown lesson to basic interactive HTML"""
-        
-        # Simple markdown to HTML conversion
-        html_content = markdown_content.replace('\n### ', '\n<h3>')
-        html_content = html_content.replace('\n## ', '\n<h2>')
-        html_content = html_content.replace('\n# ', '\n<h1>')
-        html_content = html_content.replace('\n- ', '\n<li>')
+        """Convert markdown lesson to styled, ADHD-friendly interactive HTML"""
+        import markdown
+        rendered_body = markdown.markdown(
+            markdown_content, extensions=['fenced_code', 'tables']
+        )
 
-        # Ensure list tags are wrapped if they exist
-        if '<li>' in html_content:
-            html_content = html_content.replace('\n<li>', '\n<ul>\n<li>')
-            html_content = html_content.replace('\n<h', '</li>\n</ul>\n<h', 1) if '</li>' in html_content else html_content
-
-        # Wrap in HTML structure
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -375,11 +367,11 @@ SUBY is the creator generating web apps and platforms."""
             background-color: #0c0c0c;
             color: #e0e0e0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
             padding: 20px;
         }}
         .container {{
-            max-width: 900px;
+            max-width: 720px;
             margin: 0 auto;
             background: #1e1e1e;
             border: 1px solid #333;
@@ -394,13 +386,20 @@ SUBY is the creator generating web apps and platforms."""
         }}
         h2 {{
             color: #00b0ff;
-            margin-top: 30px;
-            margin-bottom: 15px;
+            background-color: #16232b;
+            border-left: 4px solid #00b0ff;
+            padding: 10px 16px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            border-radius: 4px;
         }}
         h3 {{
             color: #b3e5fc;
-            margin-top: 20px;
+            margin-top: 24px;
             margin-bottom: 10px;
+        }}
+        strong {{
+            color: #00e676;
         }}
         p {{
             margin-bottom: 15px;
@@ -455,9 +454,10 @@ SUBY is the creator generating web apps and platforms."""
         }}
         .quiz-section {{
             background: #263238;
+            border: 2px solid #00e676;
             border-left: 5px solid #00e676;
             padding: 20px;
-            margin: 20px 0;
+            margin-top: 32px;
             border-radius: 4px;
         }}
         .lesson-loading {{
@@ -470,18 +470,22 @@ SUBY is the creator generating web apps and platforms."""
 </head>
 <body>
     <div class="container">
-        <h1>ًںژ“ {topic}</h1>
+        <h1>{topic}</h1>
         <div class="lesson-content">
-            {markdown_content}
+            {rendered_body}
         </div>
         <div class="quiz-section">
-            <h2>ًں“‌ Interactive Quiz</h2>
+            <h2>Interactive Quiz</h2>
             <textarea id="ans" placeholder="Enter your detailed response here..."></textarea>
             <button onclick="submitAnswer()">Submit Answer</button>
-            <p id="msg" style="display: none; color: #00e676; margin-top: 10px;">âœ“ Answer submitted successfully.</p>
+            <p id="msg" style="display: none; color: #00e676; margin-top: 10px;">Answer submitted successfully.</p>
+            <div id="feedback-area" style="display: none; background: #16232b; border-left: 4px solid #00b0ff; padding: 15px; margin-top: 15px; border-radius: 4px;">
+                <strong style="color: #00b0ff;">Tutor Evaluation:</strong>
+                <p id="evaluation-text" style="margin-top: 8px;"></p>
+            </div>
         </div>
     </div>
-    
+
     <script>
         function submitAnswer() {{
             const answer = document.getElementById('ans').value;
@@ -489,8 +493,7 @@ SUBY is the creator generating web apps and platforms."""
                 alert('Please enter an answer.');
                 return;
             }}
-            
-            // Send to backend (if available)
+
             fetch('http://localhost:5000/submit', {{
                 method: 'POST',
                 headers: {{'Content-Type': 'application/json'}},
@@ -504,6 +507,12 @@ SUBY is the creator generating web apps and platforms."""
             .then(r => r.json())
             .then(data => {{
                 document.getElementById('msg').style.display = 'block';
+                const feedbackArea = document.getElementById('feedback-area');
+                const evalText = document.getElementById('evaluation-text');
+                if (data.evaluation) {{
+                    evalText.textContent = data.evaluation;
+                    feedbackArea.style.display = 'block';
+                }}
                 console.log('Answer response:', data);
             }})
             .catch(e => console.error('Submission error:', e));
@@ -511,6 +520,7 @@ SUBY is the creator generating web apps and platforms."""
     </script>
 </body>
 </html>"""
+
 
 
 def run():

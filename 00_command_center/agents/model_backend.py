@@ -17,8 +17,9 @@ class EchoBackend(ModelBackend):
         return f"Local Helix response: {clean_prompt}"
 
 class OllamaBackend(ModelBackend):
-    def __init__(self, model: str = "qwen3:8b") -> None:
-        self.model = model
+    def __init__(self, model: str = "llama3:latest") -> None:
+        import os
+        self.model = os.environ.get("OLLAMA_MODEL", model)
 
     def chat(self, prompt: str) -> str:
         try:
@@ -29,7 +30,9 @@ class OllamaBackend(ModelBackend):
             )
             return response['message']['content']
         except Exception as exc:
-            raise ModelBackendUnavailableError("Ollama backend unavailable") from exc
+            raise ModelBackendUnavailableError(
+                f"Ollama backend unavailable (model='{self.model}'): {exc}"
+            ) from exc
 
 class CloudBackend(ModelBackend):
     def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile", 
