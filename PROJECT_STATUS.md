@@ -1,4 +1,4 @@
-﻿# Helix CEO AI Assistant — Project Status
+﻿# Helix Prime CEO — Project Status
 
 **Last verified:** 2026-06-30
 **Phase:** 1 — Personal executive tool

@@ -1,7 +1,7 @@
 # Agent Switching & Memory System - Test Guide
 
 ## Overview
-The Helix CEO AI Assistant now has a sophisticated agent switching system with shared memory management. Agents can now:
+The Helix Prime CEO now has a sophisticated agent switching system with shared memory management. Agents can now:
 - Access shared memory (all agents read/write)
 - Track accomplishments
 - Maintain SAMI's strategic memory

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Starts the full Helix CEO local stack: lesson host + feedback grader.
+# Starts the full Helix Prime CEO local stack: lesson host + feedback grader.
 # Orchestrator itself is called on-demand (not a long-running server).
 
 LESSONS_DIR="/mnt/h/AI Automation Engineering/02_learning_system/browser_engine/lessons"

@@ -1,4 +1,4 @@
-# Helix CEO AI Assistant
+# Helix Prime CEO
 
 > This project is built under [Constitution 000 — Day Zero](./CONSTITUTION_000_DAY_ZERO.md), the foundational engineering philosophy that governs every decision in this codebase. Read it first.
 

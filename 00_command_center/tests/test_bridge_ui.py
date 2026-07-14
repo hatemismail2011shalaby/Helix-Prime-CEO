@@ -17,6 +17,6 @@ def test_homepage_contains_workspace_ui() -> None:
     response = client.get("/")
     assert response.status_code == 200
     body = response.text
-    assert "Helix CEO AI Assistant" in body
+    assert "Helix Prime CEO" in body
     assert "workspace" in body.lower()
     assert "thinking" in body.lower()

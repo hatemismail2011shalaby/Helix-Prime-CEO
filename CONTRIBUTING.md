@@ -1,4 +1,4 @@
-# Contributing to Helix CEO AI Assistant
+# Contributing to Helix Prime CEO
 
 ## Getting Oriented
 

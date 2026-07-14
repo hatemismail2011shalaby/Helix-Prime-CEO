@@ -1,4 +1,4 @@
-# Helix CEO AI Assistant — Local Runbook
+# Helix Prime CEO — Local Runbook
 
 ## Purpose
 This project is a local-first AI orchestration system that runs a persistent Go daemon, routes requests through a Python orchestrator, and executes four isolated agents: SAMI, WILI, PHILI, and SUBY.

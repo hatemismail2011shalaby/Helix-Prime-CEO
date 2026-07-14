@@ -17,7 +17,7 @@ class MemoryManager:
     
     def __init__(self, memory_dir: Optional[Path] = None):
         if memory_dir is None:
-            # Default to Helix CEO AI Assistant memory
+            # Default to Helix Prime CEO memory
             memory_dir = Path(__file__).parent.parent / "06_memory"
         
         self.memory_dir = memory_dir

@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
-app = FastAPI(title="Helix CEO AI Assistant", version="1.0.0")
+app = FastAPI(title="Helix Prime CEO", version="1.0.0")
 
 # Create a shared orchestrator instance and executor for handling agent dispatches
 _ORCHESTRATOR = None
@@ -61,7 +61,7 @@ async def get_chat_ui() -> HTMLResponse:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Helix CEO AI Assistant</title>
+  <title>Helix Prime CEO</title>
   <style>
     body {{ font-family: Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(135deg, #07111f, #14253f); color: #f4f7fb; }}
     .layout {{ display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }}
@@ -101,7 +101,7 @@ async def get_chat_ui() -> HTMLResponse:
     </aside>
     <main class="workspace">
       <div class="card">
-        <h1>Helix CEO AI Assistant</h1>
+        <h1>Helix Prime CEO</h1>
         <p>Fast, responsive command center with visible thinking, agent colors, and workspace context.</p>
         <div class="agent-row">
           <div class="agent-chip sami">SAMI</div>
