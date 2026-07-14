@@ -37,6 +37,5 @@ decision deferred to next session start.
 
 ## RAG Integration Status
 - Files created: embedder.py, chunker.py, vector_store.py, retriever.py (in 00_command_center/rag/)
-- Agents wired: SAMI, PHILI, WILI (query() context retrieval and indexing; teach() intentionally left unwired since lessons already persist as files). SUBY not yet wired.
-- Known environment fix: OLLAMA_HOST was incorrectly set to 0.0.0.0:11434 system-wide, which broke the Python ollama client (CLI worked, Python client did not) — corrected to 127.0.0.1:11434 via persistent User environment variable.
-- Date: 2026-07-14
+- Agents wired: SAMI, PHILI, WILI, SUBY — all four core agents now RAG-enabled. SUBY wired via generate_from_spec() only; file-generating commands (create/template/component) intentionally left unwired since they already persist structured output to disk.
+- RAG integration phase complete: 2026-07-14.
