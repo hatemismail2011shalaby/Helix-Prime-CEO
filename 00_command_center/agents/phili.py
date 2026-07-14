@@ -13,12 +13,14 @@ from pathlib import Path
 from datetime import datetime
 from model_backend import get_model_backend
 from memory_manager import get_memory_manager
+from rag.retriever import get_retriever
 
 class PHILIAgent:
     """PHILI: The Philosopher - Personal development and self-awareness coach"""
     
     def __init__(self):
         self.backend = get_model_backend()
+        self.retriever = get_retriever()
         self.project_root = Path(__file__).resolve().parents[2]
         self.memory_dir = self.project_root / "06_memory"
         self.phili_profile_file = self.memory_dir / "phili_personal_profile.json"
@@ -336,8 +338,18 @@ Format as:
         if not question:
             question = "What matters most to you right now, and why?"
         
+        # Retrieve relevant context from RAG
+        try:
+            context = self.retriever.retrieve(question, top_k=3)
+        except Exception:
+            context = []
+        
+        context_block = ""
+        if context:
+            context_block = "Relevant past reflections:\n" + "\n".join(context) + "\n\n"
+        
         # Generate reflection prompt
-        reflection_prompt = f"""You are a compassionate philosophical guide. Help the user reflect deeply on:
+        reflection_prompt = f"""{context_block}You are a compassionate philosophical guide. Help the user reflect deeply on:
 
 Question: {question}
 
@@ -351,6 +363,15 @@ Your approach:
 Be warm, genuine, and non-judgmental."""
         
         reflection = self.backend.chat(reflection_prompt)
+        
+        # Index this Q&A for future retrieval
+        try:
+            self.retriever.index_text(
+                source_id=f"phili_reflection_{datetime.now().isoformat()}",
+                text=f"Q: {question}\nA: {reflection}",
+            )
+        except Exception:
+            pass
         
         # Log reflection session
         if not isinstance(self.mood_log, list):
@@ -376,8 +397,18 @@ Your Question: {question}
         if not entry:
             return "❌ Please provide your journal entry to reflect on."
         
+        # Retrieve relevant context from RAG
+        try:
+            context = self.retriever.retrieve(entry, top_k=3)
+        except Exception:
+            context = []
+        
+        context_block = ""
+        if context:
+            context_block = "Relevant past journal entries:\n" + "\n".join(context) + "\n\n"
+        
         # Analyze journal entry
-        analysis_prompt = f"""The user shared this journal entry:
+        analysis_prompt = f"""{context_block}The user shared this journal entry:
 
 "{entry}"
 
@@ -390,6 +421,15 @@ Provide:
 Keep it brief and supportive."""
         
         analysis = self.backend.chat(analysis_prompt)
+        
+        # Index this entry for future retrieval
+        try:
+            self.retriever.index_text(
+                source_id=f"phili_journal_{datetime.now().isoformat()}",
+                text=f"Entry: {entry}\nAnalysis: {analysis}",
+            )
+        except Exception:
+            pass
         
         # Store journal entry
         journal_entry_data = {
