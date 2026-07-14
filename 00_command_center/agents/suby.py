@@ -13,12 +13,14 @@ from pathlib import Path
 from datetime import datetime
 from model_backend import get_model_backend
 from memory_manager import get_memory_manager
+from rag.retriever import get_retriever
 
 class SUBYAgent:
     """SUBY: The Creator - Web app and platform generator"""
     
     def __init__(self):
         self.backend = get_model_backend()
+        self.retriever = get_retriever()
         self.project_root = Path(__file__).resolve().parents[2]
         self.workspace_dir = self.project_root / "generated_apps"
         self.templates_dir = self.workspace_dir / "templates"
@@ -1916,8 +1918,18 @@ You can copy this template to start your project."""
         if not spec:
             return "❌ Please provide a specification"
         
+        # Retrieve relevant context from RAG
+        try:
+            context = self.retriever.retrieve(spec, top_k=3)
+        except Exception:
+            context = []
+        
+        context_block = ""
+        if context:
+            context_block = "Relevant past generations:\n" + "\n".join(context) + "\n\n"
+        
         # Use model to understand spec and generate code
-        prompt = f"""Based on this specification, generate clean HTML/CSS/JS code:
+        prompt = f"""{context_block}Based on this specification, generate clean HTML/CSS/JS code:
 
 {spec}
 
@@ -1931,6 +1943,15 @@ Requirements:
 Provide the complete working code."""
         
         generated_code = self.backend.chat(prompt)
+        
+        # Index this generation for future retrieval
+        try:
+            self.retriever.index_text(
+                source_id=f"suby_generation_{datetime.now().isoformat()}",
+                text=f"Spec: {spec}\nCode: {generated_code}",
+            )
+        except Exception:
+            pass
         
         return f"""✓ Code Generated from Spec:
 ━━━━━━━━━━━━━━━━━━━━━━━━
