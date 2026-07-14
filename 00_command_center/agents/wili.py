@@ -14,8 +14,10 @@ import socket
 import subprocess
 import threading
 import time
+from datetime import datetime
 from pathlib import Path
 from model_backend import get_model_backend
+from rag.retriever import get_retriever
 
 LOCAL_LESSON_HOST = "http://localhost:8000"
 
@@ -28,6 +30,7 @@ class WILIAgent:
     
     def __init__(self):
         self.backend = get_model_backend()
+        self.retriever = get_retriever()
         self.project_root = Path(__file__).resolve().parents[2]
         self.browser_engine_dir = self.project_root.parent / "AI Automation Engineering" / "02_learning_system" / "browser_engine"
         self.lessons_dir = self.browser_engine_dir / "lessons"
@@ -289,7 +292,28 @@ Process ID: {process.pid}"""
             return "â‌Œ Please provide a question to query."
         
         print(f"ًں§  WILI processing query: {question}")
-        response = self.backend.chat(question)
+
+        try:
+            context = self.retriever.retrieve(question, top_k=3)
+        except Exception:
+            context = []
+
+        if context:
+            context_block = "Relevant past lessons/queries:\n" + "\n".join(context) + "\n\n"
+            augmented_question = f"{context_block}Question: {question}"
+        else:
+            augmented_question = question
+
+        response = self.backend.chat(augmented_question)
+
+        try:
+            self.retriever.index_text(
+                source_id=f"wili_query_{datetime.now().isoformat()}",
+                text=f"Q: {question}\nA: {response}",
+            )
+        except Exception:
+            pass
+
         return f"WILI's Response:\n{response}"
     
     def get_agent_context(self, agent_name: str) -> str:
