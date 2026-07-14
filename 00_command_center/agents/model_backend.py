@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from abc import ABC, abstractmethod
 
@@ -17,7 +17,7 @@ class EchoBackend(ModelBackend):
         return f"Local Helix response: {clean_prompt}"
 
 class OllamaBackend(ModelBackend):
-    def __init__(self, model: str = "llama3:latest") -> None:
+    def __init__(self, model: str = "qwen3:14b") -> None:
         import os
         self.model = os.environ.get("OLLAMA_MODEL", model)
 
@@ -75,3 +75,4 @@ def get_model_backend() -> ModelBackend:
         return EchoBackend()
     else:
         raise ValueError(f"Unsupported HELIX_MODEL_BACKEND: {backend_type}")
+
