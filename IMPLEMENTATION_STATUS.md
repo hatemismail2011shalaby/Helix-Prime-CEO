@@ -86,7 +86,7 @@
 
 ### 1. Test Basic Agent Switching
 ```bash
-cd H:\Helix CEO AI Assistant
+cd H:\10072026\Helix Prime CEO
 echo '{"agent_name": "SAMI", "prompt": "hello"}' | python orchestrator.py
 ```
 
@@ -326,3 +326,4 @@ All agent memory integration tasks completed.
 Ready for comprehensive testing and deployment.
 
 *Last Updated: 2026-07-04*
+

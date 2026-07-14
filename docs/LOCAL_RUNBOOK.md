@@ -20,7 +20,7 @@ This project is a local-first AI orchestration system that runs a persistent Go 
 From the project root:
 
 ```powershell
-cd "H:\Helix CEO AI Assistant\00_command_center"
+cd "H:\10072026\Helix Prime CEO\00_command_center"
 go build -o engine.exe engine.go
 .\engine.exe
 ```
@@ -36,16 +36,17 @@ suby generate a dashboard app
 
 ## Direct orchestrator test
 ```powershell
-cd "H:\Helix CEO AI Assistant"
+cd "H:\10072026\Helix Prime CEO"
 $payload = '{"agent_name":"sami","prompt":"hello"}'
 $payload | python .\00_command_center\orchestrator.py
 ```
 
 ## Automated verification
 ```powershell
-cd "H:\Helix CEO AI Assistant\00_command_center"
+cd "H:\10072026\Helix Prime CEO\00_command_center"
 python -m pytest tests/test_orchestrator.py -q
 ```
 
 ## Notes for demos and recruiting
 The system is designed to demonstrate a credible end-to-end product story: a persistent command center, isolated agents, shared memory, and a connected learning system that can be presented as a real operating layer rather than a toy prototype.
+
