@@ -1,4 +1,4 @@
-# Helix CEO AI Assistant — Project Status
+﻿# Helix CEO AI Assistant — Project Status
 
 **Last verified:** 2026-06-30
 **Phase:** 1 — Personal executive tool
@@ -34,3 +34,9 @@
 ## Next session starting point
 Resume at Sprint 2: isolation testing OR registry expansion — 
 decision deferred to next session start.
+
+## RAG Integration Status
+- Files created: embedder.py, chunker.py, vector_store.py, retriever.py (in 00_command_center/rag/)
+- Agents wired: SAMI only (context retrieval + auto-indexing of Q&A pairs). PHILI, WILI, SUBY not yet wired.
+- Known environment fix: OLLAMA_HOST was incorrectly set to 0.0.0.0:11434 system-wide, which broke the Python ollama client (CLI worked, Python client did not) — corrected to 127.0.0.1:11434 via persistent User environment variable.
+- Date: 2026-07-14
