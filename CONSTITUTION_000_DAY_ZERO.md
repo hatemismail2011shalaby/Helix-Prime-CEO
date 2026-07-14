@@ -1,4 +1,4 @@
-# Constitution 000 — Day Zero
+﻿# Constitution 000 — Day Zero
 
 We start without any claim to perfection.
 
