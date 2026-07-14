@@ -192,7 +192,7 @@ async def chat(payload: Dict[str, str]) -> Dict[str, Any]:
 
     try:
       orchestrator = get_orchestrator()
-    except RegistryLoadError as exc:
+    except Exception as exc:
       return {"reply": f"Error: could not load agent registry: {exc}", "agent": agent_name}
 
     # Run dispatch in a thread to allow a configurable timeout without subprocesses
