@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 
 from memory_manager import get_memory_manager
 from model_backend import get_model_backend
+from rag.retriever import get_retriever
 from tools import find_files_by_content, find_files_by_name, normalize_query_to_paths
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -106,7 +107,26 @@ def run() -> None:
     ]):
         response = _search_workspace(prompt)
     else:
-        response = backend.chat(prompt)
+        retriever = get_retriever()
+        try:
+            context = retriever.retrieve(prompt, top_k=3)
+        except Exception:
+            context = []
+        if context:
+            context_block = "\n".join(context)
+            augmented_prompt = f"Relevant context from memory:\n{context_block}\n\nUser request: {prompt}"
+        else:
+            augmented_prompt = prompt
+        response = backend.chat(augmented_prompt)
+
+    try:
+        retriever = get_retriever()
+        retriever.index_text(
+            source_id=f"sami_{datetime.now().isoformat()}",
+            text=f"Q: {prompt}\nA: {response}",
+        )
+    except Exception:
+        pass
 
     try:
         memory_mgr = get_memory_manager()

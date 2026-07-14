@@ -67,3 +67,13 @@ class Retriever:
         query_embedding = self.embedder.embed(query)
         results = self.store.query(query_embedding=query_embedding, top_k=top_k)
         return [result["text"] for result in results]
+
+
+_retriever_instance = None
+
+def get_retriever() -> Retriever:
+    """Get or create the shared Retriever singleton instance."""
+    global _retriever_instance
+    if _retriever_instance is None:
+        _retriever_instance = Retriever()
+    return _retriever_instance
