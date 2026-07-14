@@ -1,3 +1,5 @@
+Governed by [Constitution 000 — Day Zero](./CONSTITUTION_000_DAY_ZERO.md). This document defines HOW we build; Day Zero defines WHY.
+
 # HELIX CLEAN CODE CONSTITUTION
 
 **Rule 1 (Self-Discovery):** The system never relies on hardcoded configs.

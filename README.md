@@ -1,5 +1,7 @@
 # Helix CEO AI Assistant
 
+> This project is built under [Constitution 000 — Day Zero](./CONSTITUTION_000_DAY_ZERO.md), the foundational engineering philosophy that governs every decision in this codebase. Read it first.
+
 A production-grade local AI orchestration middleware. Go-based persistent runtime daemon routes tasks through a Python orchestration layer to a capability-tagged agent registry — zero cloud dependency, fully local inference via Ollama.
 
 ## Architecture
