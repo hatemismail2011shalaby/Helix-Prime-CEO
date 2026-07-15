@@ -17,7 +17,7 @@ class EchoBackend(ModelBackend):
         return f"Local Helix response: {clean_prompt}"
 
 class OllamaBackend(ModelBackend):
-    def __init__(self, model: str = "qwen3:14b") -> None:
+    def __init__(self, model: str = "helix-agent-qwen3") -> None:
         import os
         self.model = os.environ.get("OLLAMA_MODEL", model)
 

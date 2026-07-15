@@ -114,26 +114,21 @@ def test_sami_resolves_workspace_to_project_root(tmp_path: Path, monkeypatch: py
     assert any(str(path).endswith("workspace-root") for path in roots)
 
 
-def test_wili_teach_creates_html_and_launches_orchestrator(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_wili_teach_creates_html_and_starts_lesson_host(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """New teach() generates lesson + starts local HTTP server + opens browser (no browser_engine_dir)."""
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"
     lessons_dir.mkdir(parents=True)
-    orchestrator_dir = tmp_path / "browser_engine"
-    orchestrator_dir.mkdir(parents=True)
-    orchestrator_script = orchestrator_dir / "orchestrator.py"
-    orchestrator_script.write_text("print('orchestrator started')", encoding="utf-8")
-
-    monkeypatch.setattr(agent, "browser_engine_dir", orchestrator_dir)
     monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
     monkeypatch.setattr(agent, "backend", type("B", (), {"chat": lambda self, prompt: "# Topic\n## Details\nLearning content."})())
 
     started = []
-
     def fake_popen(args: list[str], cwd: str, stdout: Any, stderr: Any, text: bool) -> Any:
         started.append((args, cwd))
-        return type("P", (), {"pid": 12345})()
+        return type("P", (), {"pid": 9999})()
 
     monkeypatch.setattr(wili.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr("webbrowser.open", lambda url: None)
 
     result = agent.teach("Test Topic")
     lesson_md = lessons_dir / "test_topic.md"
@@ -142,9 +137,8 @@ def test_wili_teach_creates_html_and_launches_orchestrator(tmp_path: Path, monke
     assert lesson_md.exists()
     assert lesson_html.exists()
     assert "Lesson Files" in result
-    assert "Process ID: 12345" in result
-    assert started[0][0][1] == str(orchestrator_script)
-    assert started[0][1] == str(orchestrator_dir)
+    assert "Process ID: 9999" in result
+    assert any("http.server" in str(args) for args, _ in started)
 
 
 def test_wili_start_lesson_host_command_starts_http_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -164,7 +158,7 @@ def test_wili_start_lesson_host_command_starts_http_server(tmp_path: Path, monke
 
     assert "Local lesson host started on port 8000." in result
     assert "Serving:" in result
-    assert "terminate process PID 54321" in result
+    assert "To stop it, use 'stop_lesson_host' command (PID 54321)." in result
     assert started[0][0] == [sys.executable, "-m", "http.server", "8000"]
     assert started[0][1] == str(lessons_dir)
 
@@ -172,41 +166,41 @@ def test_wili_start_lesson_host_command_starts_http_server(tmp_path: Path, monke
 def test_wili_stop_lesson_host_stops_started_process(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"
-    lessons_dir.mkdir(parents=True)
     monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
 
-    fake_proc = type("P", (), {"pid": 54321, "poll": lambda self: None, "terminate": lambda self: None, "wait": lambda self, timeout=5: None})()
-    agent.lesson_host_process = fake_proc
+    class FakeProc:
+        pid = 54321
+        def poll(self): return None
+        def terminate(self): pass
+        def wait(self, timeout=5): pass
+
+    agent.lesson_host_process = FakeProc()
 
     result = agent.stop_lesson_host()
 
-    assert "Local lesson host stopped cleanly (PID 54321)." in result
+    assert "Lesson host stopped (PID 54321)." in result
     assert agent.lesson_host_process is None
 
 
-def test_wili_teach_warns_when_local_host_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_wili_teach_works_with_browser_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """New teach() uses start_lesson_host (always creates dir) + webbrowser.open."""
     agent = wili.WILIAgent()
     lessons_dir = tmp_path / "lessons"
     lessons_dir.mkdir(parents=True)
-    orchestrator_dir = tmp_path / "browser_engine"
-    orchestrator_dir.mkdir(parents=True)
-    orchestrator_script = orchestrator_dir / "orchestrator.py"
-    orchestrator_script.write_text("print('orchestrator started')", encoding="utf-8")
-
-    monkeypatch.setattr(agent, "browser_engine_dir", orchestrator_dir)
     monkeypatch.setattr(agent, "lessons_dir", lessons_dir)
     monkeypatch.setattr(agent, "backend", type("B", (), {"chat": lambda self, prompt: "# Topic\n## Details\nLearning content."})())
-    monkeypatch.setattr(agent, "_is_local_host_reachable", lambda host, port, timeout=0.4: False)
 
     def fake_popen(args: list[str], cwd: str, stdout: Any, stderr: Any, text: bool) -> Any:
         return type("P", (), {"pid": 12345})()
 
     monkeypatch.setattr(wili.subprocess, "Popen", fake_popen)
+    opened_urls = []
+    monkeypatch.setattr("webbrowser.open", lambda url: opened_urls.append(url))
 
     result = agent.teach("Test Topic")
 
-    assert "WARNING: A local lesson host is not currently running on localhost:8000." in result
     assert "http://localhost:8000/test_topic.html" in result
+    assert any("test_topic.html" in u for u in opened_urls)
 
 
 def test_wili_generate_lesson_adds_fallback_quiz_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -224,4 +218,5 @@ def test_wili_generate_lesson_adds_fallback_quiz_when_missing(tmp_path: Path, mo
     saved_html = html_path.read_text(encoding="utf-8")
 
     assert "## Quiz" in saved_markdown
-    assert "Interactive Quiz" in saved_html
+    # New HTML template doesn't include "Interactive Quiz" — check for Quiz heading
+    assert "Quiz" in saved_html
