@@ -88,7 +88,15 @@ class SUBYAgent:
         
         elif command == "generate":
             spec = args.get("spec", "")
+            # Delegate to the data-generation path when the spec starts with
+            # the DATAGEN: prefix — avoids polluting the web-app generator.
+            if spec.startswith("DATAGEN:"):
+                return self._generate_synthetic_data(spec.removeprefix("DATAGEN:"))
             return self.generate_from_spec(spec)
+        
+        elif command == "generate_data":
+            spec = args.get("spec", "")
+            return self._generate_synthetic_data(spec)
         
         elif command == "component":
             comp_type = args.get("component_type", "button")
@@ -1912,6 +1920,51 @@ You can copy this template to start your project."""
         
         return output
     
+    def _generate_synthetic_data(self, spec: str) -> str:
+        """Generate synthetic BPO / call-centre data from a structured spec.
+
+        This method is the Stage-2 entry point for the TP Onboarding
+        Simulation.  It builds a domain-specific prompt (not the general
+        HTML/CSS/JS prompt that ``generate_from_spec`` uses) and returns
+        structured text the caller can parse into CSV / JSON files.
+
+        The spec should describe what kind of data to generate (call
+        volumes, SLA contracts, etc.) and include formatting instructions.
+        """
+        if not spec:
+            return "❌ Please provide a data-generation specification"
+
+        try:
+            context = self.retriever.retrieve(spec, top_k=3)
+        except Exception:
+            context = []
+
+        context_block = ""
+        if context:
+            context_block = "Relevant context:\n" + "\n".join(context) + "\n\n"
+
+        prompt = (
+            f"{context_block}"
+            f"Generate synthetic BPO/call-centre operational data according "
+            f"to the specification below.\n\n"
+            f"**IMPORTANT**: Output the raw data only — no HTML, no CSS, no "
+            f"JavaScript wrapper.  Use clear section markers so a parser can "
+            f"extract each piece.\n\n"
+            f"---SPECIFICATION---\n{spec}\n"
+        )
+
+        raw = self.backend.chat(prompt)
+
+        try:
+            self.retriever.index_text(
+                source_id=f"suby_data_{datetime.now().isoformat()}",
+                text=f"Data spec: {spec}\nGenerated: {raw}",
+            )
+        except Exception:
+            pass
+
+        return raw.strip()
+
     def generate_from_spec(self, spec: str) -> str:
         """Generate code from specification"""
         
